@@ -1,0 +1,1982 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Listen Between the Lines</title>
+<style>
+/* Airbnb Cereal */
+@font-face{font-family:"Cereal";src:url("assets/9f33cd07c531d35329f2ab7d515c3a75.woff") format("woff");font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:"Cereal";src:url("assets/8570209194ba3cd9a331a50c894ebf76.woff") format("woff");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Cereal";src:url("assets/bc3af46d7b081e8cec4bf09bedde91b4.woff") format("woff");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"Cereal";src:url("assets/3eda22bc46112085dbe1ee535609c7a8.woff") format("woff");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Cereal";src:url("assets/3c4ffaf80de995f9a19250e5180bfccf.woff") format("woff");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Cereal";src:url("assets/c796c994aa89976173feeebbeae822f4.woff") format("woff");font-weight:900;font-style:normal;font-display:swap}
+
+/* =========================================================
+   TOKENS  (intentionally dark in every theme)
+   ========================================================= */
+@property --accent { syntax: '<color>'; inherits: true; initial-value: #8A8278; }
+@property --light  { syntax: '<angle>'; inherits: true; initial-value: 210deg; }
+
+:root{
+  --bg:#0C0B0A;
+  --ink:#EDE6DA;
+  --ink-2:rgba(237,230,218,.68);
+  --ink-3:rgba(237,230,218,.32);
+  --line:rgba(237,230,218,.14);
+  --label-ink:#1A1611;
+  --pad:clamp(22px,3.6vw,64px);
+  --top:80px;
+  --S:min(92vh,60vw);
+  --ease:cubic-bezier(.22,.7,.1,1);
+  --ease-io:cubic-bezier(.65,0,.25,1);
+  --ease-in:cubic-bezier(.55,0,.85,.25);
+  --ease-out:cubic-bezier(.12,.75,.18,1);
+  --font:"Cereal","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0C0B0A; --ink:#EDE6DA; } }
+:root[data-theme="dark"]{ --bg:#0C0B0A; --ink:#EDE6DA; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased;font-kerning:normal}
+button{font:inherit;color:inherit}
+p,h1,h2,h3,dl,dd{margin:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:1.5px solid var(--ink);outline-offset:5px;border-radius:3px}
+[tabindex="-1"]:focus{outline:none}
+
+.meta{font-size:10.5px;line-height:1.3;letter-spacing:.2em;text-transform:uppercase;font-weight:500;}
+
+/* =========================================================
+   SHELL
+   ========================================================= */
+.app{position:relative;height:100%;overflow:hidden;isolation:isolate;transition:--accent 1.4s var(--ease)}
+.app[data-screen="finale"]{transition:--accent 5s var(--ease)}
+.ambient{position:absolute;inset:0;z-index:0;pointer-events:none;transition:opacity 2.4s var(--ease);
+  background:
+    radial-gradient(ellipse 40% 48% at 72% 50%, color-mix(in srgb,var(--accent) 13%,transparent), transparent 72%),
+    radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,.7) 100%)}
+.app[data-fstep="1"] .ambient,.app[data-fstep="2"] .ambient{opacity:.45}
+.app[data-fstep="b"] .ambient{opacity:0}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+/* Top bar */
+.topbar{position:absolute;top:0;left:0;right:0;height:var(--top);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 var(--pad);pointer-events:none;transition:opacity 1s var(--ease)}
+.topbar > *{pointer-events:auto}
+.app[data-fstep="b"] .topbar{opacity:0}
+.home{background:none;border:0;padding:12px 0;cursor:pointer;color:var(--ink);position:relative}
+.home::after{content:"";position:absolute;left:0;right:0;bottom:7px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .5s var(--ease)}
+.home:hover::after,.home:focus-visible::after{transform:scaleX(1);transform-origin:left}
+.nav{display:flex;gap:0;transition:opacity .6s var(--ease),visibility 0s}
+.app[data-screen="intro"] .nav,.app[data-screen="finale"] .nav{opacity:0;visibility:hidden;transition:opacity .6s var(--ease),visibility 0s .6s}
+.nav button{position:relative;background:none;border:0;padding:12px 13px;cursor:pointer;color:var(--ink-3);transition:color .3s}
+.nav button.visited{color:var(--ink-2)}
+.nav button:hover,.nav button[aria-current="true"]{color:var(--ink)}
+.nav button::after{content:"";position:absolute;left:13px;right:13px;bottom:6px;height:1px;background:var(--c);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--ease)}
+.nav button[aria-current="true"]::after{transform:scaleX(1)}
+.navwrap{display:flex;align-items:center;gap:4px}
+.playall{display:inline-flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;color:var(--ink-2);
+  padding:12px 0 12px 16px;margin-left:12px;position:relative;transition:color .3s,opacity .6s var(--ease),visibility 0s}
+.playall::before{content:"";position:absolute;left:0;top:50%;width:1px;height:14px;margin-top:-7px;background:var(--line)}
+.playall:hover{color:var(--ink)}
+.playall .pa-ico{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor}
+.playall .i-stop{display:none}
+.playall[aria-pressed="true"]{color:var(--ink)}
+.playall[aria-pressed="true"] .i-play{display:none}
+.playall[aria-pressed="true"] .i-stop{display:block}
+.app[data-screen="intro"] .playall,.app[data-screen="finale"] .playall{opacity:0;visibility:hidden;transition:opacity .6s var(--ease),visibility 0s .6s}
+
+/* =========================================================
+   DECK  (CSS 3D turntable)
+   ========================================================= */
+.deck{position:absolute;z-index:1;width:var(--S);height:var(--S);left:calc(100% - var(--S) + 4vw);top:50%;margin-top:calc(var(--S) / -2 + 3vh);
+  transition:transform 2s var(--ease-io),opacity 1.8s var(--ease)}
+.app[data-screen="intro"] .deck{transform:translate(12%,4%) scale(1.12);opacity:.4}
+.app[data-screen="finale"] .deck{transform:translateX(calc(var(--S) / 2 - 54vw)) scale(.92);opacity:.95}
+.app[data-fstep="1"] .deck{transform:translateX(calc(var(--S) / 2 - 54vw)) scale(.86);opacity:.34}
+.app[data-fstep="2"] .deck{transform:translateX(calc(var(--S) / 2 - 54vw)) scale(.8);opacity:.3}
+.app[data-fstep="b"] .deck{transform:translateX(calc(var(--S) / 2 - 54vw)) scale(.78);opacity:.05}
+.app[data-fstep="3"] .deck{transform:translateX(calc(var(--S) / 2 - 54vw)) scale(.74);opacity:.24}
+.floor{position:absolute;left:4%;right:0;bottom:-4%;height:24%;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.8),transparent 70%);filter:blur(24px)}
+.stage{position:absolute;inset:0;perspective:2000px;perspective-origin:50% 26%}
+.platter{position:absolute;inset:0;transform-style:preserve-3d;
+  transform:rotateX(calc(var(--rx,40deg) + var(--ty,0deg))) rotateY(var(--tx,0deg)) rotateZ(var(--rz,-9deg));
+  transition:transform 1.4s var(--ease)}
+.app[data-screen="finale"] .platter{--rx:48deg;--rz:-4deg}
+.deck.tracking .platter{transition:transform .1s linear}
+.deck.tracking .sheen{transition:opacity .6s var(--ease),--light .1s linear}
+
+.plinth-side{position:absolute;inset:0;border-radius:2.2%;background:linear-gradient(to bottom,#090908,#1d1b18);transform:translateZ(calc(var(--i) * -3px))}
+.plinth{position:absolute;inset:0;border-radius:2.2%;transform-style:preserve-3d;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),
+    linear-gradient(158deg,#23201d 0%,#171513 50%,#0f0e0c 100%);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.07),inset 0 0 0 1px rgba(255,255,255,.03)}
+.knob{position:absolute;left:6.5%;bottom:6.5%;width:9%;aspect-ratio:1;border-radius:50%;transform:translateZ(4px);
+  background:conic-gradient(from 30deg,#4f4b45,#1e1c1a,#5a554e,#1b1917,#4f4b45);box-shadow:0 4px 8px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.35)}
+.knob::after{content:"";position:absolute;left:50%;top:12%;width:4%;height:24%;background:rgba(237,230,218,.5);transform:translateX(-50%);border-radius:2px}
+.speed{position:absolute;left:18.5%;bottom:9.3%;font-size:calc(var(--S) * .015);letter-spacing:.26em;color:var(--ink-3);font-weight:500}
+.speed b{color:var(--ink-2);font-weight:500}
+.etch{position:absolute;right:6.5%;bottom:5%;font-size:calc(var(--S) * .011);letter-spacing:.32em;color:rgba(237,230,218,.18);font-weight:500;text-transform:uppercase}
+.led{position:absolute;left:6.8%;top:6.5%;width:1%;aspect-ratio:1;border-radius:50%;background:#2b2723;transition:background .6s,box-shadow .6s}
+.app[data-playing="true"] .led{background:var(--accent);box-shadow:0 0 10px var(--accent)}
+
+.rim{position:absolute;left:44%;top:50%;width:87%;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%) translateZ(2px);
+  background:conic-gradient(from 20deg,#403c37,#1b1a18,#4b4741,#191816,#37342f,#403c37);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 14px 34px rgba(0,0,0,.6)}
+.rim::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(rgba(237,230,218,.24) 0 .7deg,transparent .7deg 4deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 96.4%,#000 96.8% 99%,transparent 99.4%);mask:radial-gradient(circle,transparent 0 96.4%,#000 96.8% 99%,transparent 99.4%)}
+
+.record{--lift:0px;--dx:0%;position:absolute;left:44%;top:50%;width:82%;aspect-ratio:1;transform-style:preserve-3d;cursor:grab;touch-action:none;
+  transform:translate(calc(-50% + var(--dx)),-50%) translateZ(calc(var(--lift) + 4px)) rotateX(var(--flip,0deg));
+  transition:transform 1.15s var(--ease-out)}
+.record:active{cursor:grabbing}
+.deck.hover .record{--lift:10px}
+.deck.pressed .record{--lift:1px;transition-duration:.18s}
+.deck.exit .record{--dx:-155%;--lift:120px;transition:transform .9s var(--ease-in)}
+.deck.enter-from .record{--dx:155%;--lift:120px}
+.deck.no-trans .record{transition:none!important}
+.deck.flipped .record{--flip:180deg;animation:flip 2.4s var(--ease-io) forwards}
+.deck.exit .record{animation:none}
+@keyframes flip{
+  0%  {transform:translate(-50%,-50%) translateZ(4px) rotateX(0deg)}
+  45% {transform:translate(-50%,-50%) translateZ(170px) rotateX(90deg)}
+  100%{transform:translate(-50%,-50%) translateZ(4px) rotateX(180deg)}
+}
+.edge{position:absolute;inset:0;border-radius:50%;background:#070707;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);transform:translateZ(calc(var(--i) * 1px + 1px))}
+.face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:
+    radial-gradient(circle, transparent 0 96%, #24221f 96.5%, #0c0b0a 99.2%, #2a2825 100%),
+    radial-gradient(circle, transparent 0 23%, #1f1e1b 23.5%, #161513 26%, transparent 26.5%),
+    radial-gradient(circle, transparent 0 38%, rgba(255,255,255,.045) 38.3%, transparent 38.9%, transparent 57%, rgba(255,255,255,.035) 57.3%, transparent 57.9%, transparent 77%, rgba(255,255,255,.035) 77.3%, transparent 77.9%),
+    repeating-radial-gradient(circle, #121110 0 1.05px, #1c1b19 1.05px 2.2px),
+    #141312;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),inset 0 0 calc(var(--S) * .012) rgba(0,0,0,.7)}
+.front{transform:translateZ(6px)}
+.back{transform:translateZ(2px) rotateX(180deg)}
+.front::before{content:"";position:absolute;inset:13%;border-radius:50%;border:1px solid transparent;border-top-color:rgba(255,255,255,.07);transform:rotate(24deg)}
+.front::after{content:"";position:absolute;left:80%;top:30%;width:1.2%;height:.5%;border-radius:40%;background:rgba(255,255,255,.14);transform:rotate(40deg)}
+.label{position:absolute;left:50%;top:50%;width:38%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.07), transparent 55%),
+    repeating-radial-gradient(circle, rgba(255,255,255,.012) 0 .6px, transparent .6px 2.4px),
+    #0A0A0A;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 0 18px rgba(0,0,0,.6)}
+.label svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.lbl-ring{font-size:7.2px;font-weight:500;letter-spacing:.14em;fill:rgba(255,255,255,.5);}
+.lbl-code{font-size:15px;font-weight:800;fill:#fff;letter-spacing:.02em}
+.lbl-small{font-size:5.6px;font-weight:500;letter-spacing:.26em;fill:rgba(255,255,255,.6)}
+.lbl-accent{fill:none;stroke:var(--accent);stroke-width:1.6}
+.sheen{position:absolute;inset:0;border-radius:50%;transform:translateZ(7px);pointer-events:none;opacity:.8;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:
+    conic-gradient(from var(--light), transparent 0 6%, rgba(255,246,230,.12) 11.5%, transparent 17%, transparent 50%, rgba(255,246,230,.08) 55.5%, transparent 62%),
+    radial-gradient(circle at 30% 24%, rgba(255,255,255,.06), transparent 52%);
+  -webkit-mask:radial-gradient(circle, transparent 0 18.9%, #000 19.4%);mask:radial-gradient(circle, transparent 0 18.9%, #000 19.4%);
+  transition:opacity .6s var(--ease),--light 1.2s var(--ease)}
+.deck.hover .sheen{opacity:1}
+.spindle{position:absolute;left:44%;top:50%;width:1.5%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) translateZ(15px);
+  background:radial-gradient(circle at 35% 30%,#e8e2d8,#77716a 45%,#2c2a27 80%);box-shadow:0 2px 3px rgba(0,0,0,.6)}
+
+.arm-base{position:absolute;left:90%;top:14%;width:11%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) translateZ(8px);
+  background:radial-gradient(circle at 40% 35%,#3c3834,#161513 70%);box-shadow:0 0 0 1px rgba(255,255,255,.05),0 10px 20px rgba(0,0,0,.6)}
+.arm-base::after{content:"";position:absolute;inset:32%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#8d867c,#2a2825 75%)}
+.arm,.arm-shadow{position:absolute;left:90%;top:14%;transform-origin:50% 0}
+.arm{width:6%;height:56%;cursor:grab;touch-action:none;
+  transform:translateX(-50%) translateZ(var(--armz,42px)) rotate(var(--arm,-6deg));transition:transform 1.2s var(--ease)}
+.arm.lowered{--armz:30px}
+.arm.dragging,.arm-shadow.dragging{transition:none}
+.arm.live,.arm-shadow.live{transition:transform .12s linear}
+.arm svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.arm-shadow{width:1.6%;height:56%;border-radius:4px;filter:blur(5px);opacity:.75;
+  background:linear-gradient(to bottom,transparent,rgba(0,0,0,.7) 12%,rgba(0,0,0,.7) 84%,rgba(0,0,0,.9));
+  transform:translateX(-50%) translate(calc(var(--S) * .03),calc(var(--S) * .03)) translateZ(24px) rotate(var(--arm,-6deg));transition:transform 1.2s var(--ease)}
+.arm.lowered + .arm-shadow,.arm-shadow.lowered{transform:translateX(-50%) translate(calc(var(--S) * .012),calc(var(--S) * .012)) translateZ(26px) rotate(var(--arm,-6deg))}
+.weight{position:absolute;left:50%;top:-15%;width:150%;height:11%;transform:translateX(-50%);border-radius:28%;
+  background:linear-gradient(90deg,#2a2724,#5c574f 45%,#24211e);box-shadow:0 10px 16px rgba(0,0,0,.5)}
+
+/* =========================================================
+   SCREENS
+   ========================================================= */
+.screen{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;visibility:hidden;
+  transition:opacity .7s var(--ease),visibility 0s .7s}
+.screen.is-active{opacity:1;visibility:visible;transition:opacity 1s var(--ease) .3s,visibility 0s}
+.screen.leaving{opacity:0;transition:opacity .5s var(--ease)}
+.screen.is-active button,.screen.is-active a,.screen.is-active canvas,.screen.is-active iframe{pointer-events:auto}
+.scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;padding:var(--top) var(--pad) calc(var(--pad) * 1.25);pointer-events:none}
+.scroll > *{pointer-events:none}
+.screen.is-active .col{pointer-events:auto}
+.col{margin-top:auto}
+
+/* Line reveals */
+.ln{display:block;overflow:hidden;padding-bottom:.04em;margin-bottom:-.04em}
+.ln > span{display:block;transform:translateY(108%);transition:transform 1.2s var(--ease) calc(var(--d,0) * 110ms + 300ms)}
+.is-active .ln > span{transform:none}
+.screen.leaving .ln > span,.intro.leaving .ln > span{transform:translateY(-108%);transition:transform .6s var(--ease-in) calc(var(--d,0) * 50ms)}
+.col.is-out .ln > span{transform:translateY(-108%);transition:transform .55s var(--ease-in) calc(var(--d,0) * 40ms)}
+.col.is-prep .ln > span{transform:translateY(108%);transition:none}
+.fade{transition:opacity .9s var(--ease) calc(var(--d,0) * 90ms + .45s)}
+.col.is-out .fade{opacity:0;transition:opacity .35s var(--ease)}
+.col.is-prep .fade{opacity:0;transition:none}
+.col.is-out .panel:not(.off),.col.is-out .panel:not(.off) .statement .ln > span{opacity:0;transition:opacity .35s var(--ease)}
+.col.is-prep .panel{opacity:0;transition:none}
+
+/* Controls */
+.link{position:relative;display:inline-flex;align-items:center;gap:9px;background:none;border:0;padding:12px 0;cursor:pointer;text-decoration:none;color:var(--ink);
+  font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+.link::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .55s var(--ease)}
+.link:hover::after,.link:focus-visible::after{transform:scaleX(1);transform-origin:left}
+.link.muted{color:var(--ink-2)}
+.link.muted:hover{color:var(--ink)}
+.arr{display:inline-block;transition:transform .55s var(--ease)}
+.link:hover .arr{transform:translateX(4px)}
+.link:hover .arr.ne{transform:translate(2px,-2px)}
+.link:hover .arr.back{transform:translateX(-4px)}
+.link:hover .arr.down{transform:translateY(4px)}
+.intro .enter .arr.down{font-size:13px;line-height:1;animation:nudge 2.4s cubic-bezier(.4,0,.3,1) infinite}
+.intro .enter:hover .arr.down{animation-play-state:paused}
+@keyframes nudge{0%,55%,100%{transform:translateY(0)}70%{transform:translateY(6px)}84%{transform:translateY(1px)}92%{transform:translateY(3px)}}
+
+/* ---------- Intro ---------- */
+.intro h1{margin-left:-.04em;font-weight:800;font-size:min(15.5vw,21vh);line-height:.86;letter-spacing:-.035em;text-transform:uppercase}
+.intro-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:24px 40px;margin-top:6vh;flex-wrap:wrap}
+.intro .scroll{padding-bottom:calc(var(--pad) * 1.25 + 46px)}
+.intro-q{font-size:clamp(19px,1.7vw,27px);font-weight:300;line-height:1.25;max-width:20ch;letter-spacing:-.006em;
+  opacity:0;transition:opacity 1.2s var(--ease) 1s}
+.intro .enter{position:absolute;left:50%;bottom:calc(var(--pad) * .9);transform:translateX(-50%);z-index:6;white-space:nowrap;
+  flex-direction:column;gap:12px;padding-bottom:4px;
+  opacity:0;transition:opacity 1.2s var(--ease) 1.4s}
+.intro .enter::after{display:none}          /* no underline sweep on the scroll cue */
+.intro.is-active .intro-q,.intro.is-active .enter{opacity:1}
+.intro.leaving .intro-q,.intro.leaving .enter{opacity:0;transition-delay:0s;transition-duration:.4s}
+
+/* ---------- Soundcheck ---------- */
+.soundcheck .col{width:min(500px,38vw);margin-top:auto;margin-bottom:auto;padding-top:4vh}
+.eyebrow{color:var(--ink-2)}
+.display{margin:26px 0 56px;font-weight:300;font-size:clamp(38px,4.2vw,68px);line-height:1.06;letter-spacing:-.035em}
+.index{border-bottom:1px solid var(--line)}
+.row{position:relative;width:100%;display:grid;grid-template-columns:78px 1fr;align-items:baseline;gap:12px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:16px 0 14px;cursor:pointer;
+  opacity:0;transition:opacity .9s var(--ease) calc(var(--d) * 90ms + .8s),padding .6s var(--ease)}
+.soundcheck.is-active .row{opacity:1}
+.row::before{content:"";position:absolute;left:0;top:-1px;height:1px;width:100%;background:var(--c);transform:scaleX(0);transform-origin:left;transition:transform .7s var(--ease)}
+.row:hover,.row:focus-visible{padding-left:12px}
+.row:hover::before,.row:focus-visible::before{transform:scaleX(1)}
+.row .code{font-size:30px;font-weight:800;line-height:.9;letter-spacing:-.03em}
+.row .nm{font-size:16px;font-weight:300;color:var(--ink)}
+.row .ct{color:var(--ink-2)}
+
+/* ---------- Market ---------- */
+.market .col{width:min(430px,32vw)}
+.mindex{display:flex;gap:18px;color:var(--ink-2);margin-bottom:14px}
+.mcode{font-weight:800;font-size:clamp(100px,19vh,220px);line-height:.8;letter-spacing:-.045em;margin-left:-.05em}
+.stackcell{display:grid;margin-top:30px}
+.stackcell > .panel{grid-area:1/1;transition:opacity .7s var(--ease),visibility 0s}
+.panel.off{opacity:0;visibility:hidden;transition:opacity .45s var(--ease),visibility 0s .45s}
+.title{font-weight:700;font-size:clamp(22px,2.1vw,34px);line-height:1.08;letter-spacing:-.015em}
+.artist{margin-top:7px;font-weight:300;font-size:clamp(19px,1.6vw,26px);line-height:1.18;letter-spacing:-.008em;color:var(--ink-2)}
+.quote{margin-top:18px;max-width:26ch;font-weight:300;font-size:clamp(15px,1.15vw,18px);line-height:1.3;letter-spacing:0;color:var(--ink-2)}
+.quote .attr{display:block;margin-top:10px;color:var(--ink-3)}
+.quote[hidden]{display:none}
+.cycler{display:flex;align-items:center;gap:4px;margin-top:16px;color:var(--ink-2)}
+.cycler[hidden]{display:none}
+.cyc-btn{width:36px;height:36px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:var(--ink-2);transition:color .3s}
+.cyc-btn:hover{color:var(--ink)}
+.cyc-btn:first-child{margin-left:-11px}
+.cyc-count{font-variant-numeric:tabular-nums;padding:0 4px}
+.dossier{margin-top:30px;display:grid;grid-template-columns:92px 1fr;border-bottom:1px solid var(--line)}
+.dossier dt,.dossier dd{border-top:1px solid var(--line);padding:11px 0 10px}
+.dossier dt{color:var(--ink-2)}
+.dossier dd{font-size:13.5px;font-weight:400;line-height:1.3}
+.dossier[hidden],.dossier [hidden]{display:none}
+.transport{display:flex;align-items:center;gap:20px;margin-top:28px}
+.play{flex:none;width:56px;height:56px;border-radius:50%;border:1px solid var(--ink-3);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--ink);
+  transition:border-color .4s,background .4s,color .4s}
+.play:hover{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.play .i-pause{display:none}
+.app[data-playing="true"] .play .i-play{display:none}
+.app[data-playing="true"] .play .i-pause{display:block}
+.wave{flex:1;min-width:0}
+.wave canvas{display:block;width:100%;height:30px;cursor:pointer}
+.time-row{display:flex;justify-content:space-between;gap:12px;margin-top:8px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.time-row .state{color:var(--ink)}
+.actions{display:flex;align-items:center;flex-wrap:wrap;gap:4px 26px;margin-top:22px}
+.actions .next{margin-left:auto}
+.col.show-signal .only-track,.col:not(.show-signal) .only-signal{display:none}
+.col:not(.has-played) .needs-play{display:none}
+
+.signal-eyebrow{display:flex;align-items:center;gap:14px;color:var(--ink-2)}
+.draft{padding:4px 8px 3px;border:1px dashed var(--ink-3);border-radius:999px;font-size:9px;color:var(--ink-2)}
+.draft[hidden]{display:none}
+.statement{margin-top:20px;font-weight:300;font-size:clamp(24px,2.2vw,36px);line-height:1.14;max-width:19ch;letter-spacing:-.018em}
+.statement .ln > span{transform:translateY(108%);transition:transform 1s var(--ease) calc(var(--d,0) * 130ms + 200ms)}
+.panel:not(.off) .statement .ln > span{transform:none}
+.nowplaying{margin-top:32px;color:var(--ink-2);display:flex;justify-content:space-between;gap:14px}
+.minibar{margin-top:12px;height:1px;background:var(--line);position:relative;overflow:hidden}
+.minibar i{position:absolute;inset:0;background:var(--ink);transform-origin:left;transform:scaleX(0)}
+
+/* Source window (YouTube) */
+.source{position:fixed;right:var(--pad);bottom:calc(var(--pad) * 1.25);width:320px;z-index:8;
+  opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .8s var(--ease),transform .8s var(--ease),visibility 0s .8s}
+.app.has-source[data-screen="market"] .source,
+.app.has-source[data-screen="playlist"] .source{opacity:1;visibility:visible;transform:none;transition:opacity .8s var(--ease),transform .8s var(--ease),visibility 0s}
+.app[data-screen="playlist"] .src-zoom{display:none}   /* corner frame only on the playlist */
+.source .cap{display:flex;justify-content:space-between;color:var(--ink-2);margin-bottom:10px}
+.source .frame{position:relative;aspect-ratio:16/9;background:#000;box-shadow:0 0 0 1px var(--line),0 30px 60px rgba(0,0,0,.6)}
+.source iframe,.source video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.source video{object-fit:cover}
+.source.is-video{width:280px}
+.source.is-video .frame{aspect-ratio:4/3}
+/* Replaces the native fullscreen button, which is suppressed on the video element */
+.src-zoom{position:absolute;right:8px;top:8px;z-index:3;width:30px;height:30px;display:grid;place-items:center;
+  background:rgba(8,8,9,.72);border:1px solid var(--line);color:var(--ink-2);font-size:13px;line-height:1;cursor:pointer;
+  opacity:.78;transition:opacity .4s var(--ease),color .4s var(--ease),border-color .4s var(--ease)}
+.source:hover .src-zoom,.src-zoom:focus-visible,.source.big .src-zoom{opacity:1}
+.src-zoom:hover{color:var(--ink);border-color:var(--ink)}
+.src-zoom:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
+
+/* Enlarged view: a quarter of the screen by area, capped at the source's own pixels */
+.srcveil{position:fixed;inset:0;z-index:7;background:rgba(8,8,9,.86);opacity:0;transition:opacity .6s var(--ease)}
+.app.src-big .srcveil{opacity:1}
+.app.has-source[data-screen="market"] .source.big,
+.source.big{width:min(50vw,var(--zoom-max,640px));right:50%;bottom:50%;transform:translate(50%,50%)}
+.app.has-source[data-screen="market"] .source.big.is-video{width:min(50vw,var(--zoom-max,640px))}
+.source.big .frame,.source.big.is-video .frame{aspect-ratio:16/9}
+.source.big video{object-fit:contain}
+
+.hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * 1.25 + 12px);color:var(--ink-2);text-align:right;transition:opacity 1s var(--ease)}
+.app.touched .hint,.app.has-source .hint{opacity:0}
+
+/* ---------- Playlist ---------- */
+.playlist .col{width:min(560px,42vw)}
+.pl-head{margin:22px 0 34px;font-weight:300;font-size:clamp(34px,3.6vw,56px);line-height:1.04;letter-spacing:-.035em}
+.pl-list{border-top:1px solid var(--line)}
+.pl-row{position:relative;user-select:none;-webkit-user-select:none;
+  opacity:0;transition:opacity .8s var(--ease) calc(var(--d) * 70ms + .5s)}
+.playlist.is-active .pl-row{opacity:1}
+.pl-open{width:100%;display:grid;grid-template-columns:46px 1fr auto;align-items:baseline;gap:14px;text-align:left;
+  background:none;border:0;padding:15px 0 24px;cursor:pointer;color:var(--ink-2);transition:color .35s,padding .5s var(--ease)}
+.pl-open:hover,.pl-open:focus-visible{color:var(--ink);padding-left:10px}
+.pl-row.on .pl-open{color:var(--ink)}
+.pl-code{font-size:10.5px;letter-spacing:.2em;font-weight:500;color:var(--ink-3);transition:color .35s}
+.pl-main{min-width:0}
+.pl-title{display:block;font-size:15.5px;font-weight:700;letter-spacing:-.012em;line-height:1.2;color:var(--ink)}
+.pl-artist{display:block;font-size:13.5px;font-weight:300;line-height:1.3;margin-top:2px;color:var(--ink-2)}
+.pl-sig{display:grid;grid-template-rows:0fr;opacity:0;
+  transition:grid-template-rows .7s var(--ease),opacity .6s var(--ease),margin .7s var(--ease)}
+.pl-sig-in{overflow:hidden;min-height:0}
+.pl-q{display:block;font-size:13px;font-weight:300;line-height:1.35;color:var(--ink-2);max-width:46ch}
+.pl-by{display:block;margin-top:6px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--ink-3)}
+.pl-row.on .pl-sig{grid-template-rows:1fr;opacity:1;margin-top:9px}
+.pl-row.on .pl-code{color:var(--accent)}
+.pl-num{font-size:10.5px;letter-spacing:.14em;font-weight:500;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.pl-row.on .pl-num{display:none}
+.pl-bars{display:none;gap:2px;align-items:flex-end;height:11px}
+.pl-row.on .pl-bars{display:flex}
+.pl-bars i{width:2px;background:var(--accent);height:30%;animation:eq 1.1s ease-in-out infinite}
+.pl-bars i:nth-child(2){animation-delay:.18s}.pl-bars i:nth-child(3){animation-delay:.36s}
+.app[data-playing="false"] .pl-bars i{animation-play-state:paused}
+@keyframes eq{0%,100%{height:28%}50%{height:100%}}
+
+/* the scrub bar: its own target, tall enough to grab */
+.pl-bar{position:absolute;left:0;right:0;bottom:0;height:20px;cursor:ew-resize;touch-action:none}
+.pl-bar .rail,.pl-bar .fill{position:absolute;left:0;bottom:5px;height:2px;border-radius:2px;pointer-events:none}
+.pl-bar .rail{right:0;background:var(--ink);opacity:.17;transition:opacity .3s,height .18s,bottom .18s}
+.pl-bar .fill{width:0;background:var(--accent);opacity:0;transition:opacity .3s,height .18s,bottom .18s}
+.pl-bar .knob{position:absolute;bottom:1px;left:0;width:10px;height:10px;margin-left:-5px;border-radius:50%;
+  background:var(--accent);opacity:0;transform:scale(.6);pointer-events:none;
+  transition:opacity .22s var(--ease),transform .22s var(--ease)}
+.pl-row.on .fill{opacity:1}
+.pl-row:hover .rail,.pl-bar:focus-visible ~ .rail,.pl-row.dragging .rail{opacity:.3}
+.pl-row.on:hover .knob,.pl-row.dragging .knob,.pl-bar:focus-visible .knob{opacity:1;transform:scale(1)}
+.pl-row:hover .fill,.pl-row.dragging .fill{opacity:1}
+.pl-row:not(.on) .fill{background:var(--ink-2)}
+.pl-row.dragging .rail,.pl-row.dragging .fill{height:3px;bottom:4.5px}
+.pl-bar:focus-visible{outline:none}
+.pl-bar:focus-visible ~ .rail{opacity:.4}
+.pl-row.scrub-focus{outline:1.5px solid var(--ink);outline-offset:3px;border-radius:3px}
+.pl-transport{display:flex;align-items:center;gap:20px;margin-top:30px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.play-sm{width:44px;height:44px}
+.pl-transport .pl-exit{margin-left:auto}
+
+/* ---------- Finale ---------- */
+.finale .scroll{align-items:center;justify-content:center;text-align:center}
+.f-stage{display:grid;place-items:center;width:100%;margin:auto 0}
+.f-step{grid-area:1/1;opacity:0;visibility:hidden;transition:opacity 1s var(--ease),visibility 0s 1s}
+.finale[data-step="1"] .f-1,.finale[data-step="2"] .f-2,.finale[data-step="3"] .f-3{opacity:1;visibility:visible;transition:opacity .6s var(--ease),visibility 0s}
+.f-step .ln > span{transform:translateY(108%);transition:transform 1.5s var(--ease) calc(var(--d,0) * 220ms + 100ms)}
+.finale[data-step="1"] .f-1 .ln > span,.finale[data-step="2"] .f-2 .ln > span,.finale[data-step="3"] .f-3 .ln > span{transform:none}
+.finale:not([data-step="1"]) .f-1 .ln > span,.finale[data-step="b"] .f-2 .ln > span,.finale[data-step="3"] .f-2 .ln > span{transform:translateY(-108%);transition:transform .9s var(--ease-in) calc(var(--d,0) * 80ms)}
+.finale[data-step="0"] .f-1 .ln > span{transform:translateY(108%);transition:none}
+.f-line{font-weight:800;font-size:min(10vw,14vh);line-height:.88;text-transform:uppercase;letter-spacing:-.035em}
+.f-2 .f-line{font-size:min(10.6vw,15vh)}
+.f-3 .eyebrow{margin-bottom:26px;opacity:0;transition:opacity 1s var(--ease) .2s}
+.f-title{font-weight:800;font-size:min(11.5vw,17vh);line-height:.86;letter-spacing:-.04em;text-transform:uppercase}
+.f-sub{margin:28px auto 0;font-weight:300;font-size:clamp(19px,1.7vw,26px);line-height:1.25;max-width:34ch;letter-spacing:-.006em;opacity:0;transition:opacity 1.2s var(--ease) 1.1s}
+.f-ctas{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:14px 40px;margin-top:48px;opacity:0;transition:opacity 1.2s var(--ease) 1.6s}
+.finale[data-step="3"] .f-sub,.finale[data-step="3"] .f-ctas,.finale[data-step="3"] .f-3 .eyebrow{opacity:1}
+.btn-report{display:inline-flex;align-items:center;gap:14px;height:58px;padding:0 30px;border-radius:999px;background:var(--ink);color:var(--bg);text-decoration:none;
+  font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;transition:background .4s}
+.btn-report:hover{background:#fff}
+.btn-report:hover .arr{transform:translateX(4px)}
+.btn-report.soon{background:transparent;color:var(--ink-2);border:1px solid var(--ink-3);cursor:default;pointer-events:none}
+.btn-report.soon .arr{display:none}
+.btn-ghost{display:inline-flex;align-items:center;gap:12px;height:58px;padding:0 28px;border-radius:999px;border:1px solid var(--ink-3);background:transparent;color:var(--ink);cursor:pointer;
+  font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;transition:border-color .4s,background .4s}
+.btn-ghost:hover{border-color:var(--ink);background:rgba(237,230,218,.06)}
+.btn-ghost.solid{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn-ghost.solid:hover{background:#fff;border-color:#fff}
+.btn-ghost[hidden]{display:none}
+.jam-ico{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;flex:none}
+.btn-ghost .arr.back{transition:transform .6s var(--ease)}
+.btn-ghost:hover .arr.back{transform:rotate(-180deg)}
+.skip{position:absolute;right:var(--pad);bottom:calc(var(--pad) - 4px);z-index:6;transition:opacity .5s}
+.finale[data-step="3"] .skip{opacity:0;visibility:hidden}
+
+/* =========================================================
+   MOBILE  (recomposed)
+   ========================================================= */
+@media (max-width: 760px){
+  :root{--top:64px;--S:min(104vw,56vh)}
+  .deck{left:50%;margin-left:calc(var(--S) / -2);top:calc(var(--top) - 10vw);margin-top:0}
+  .platter{--rx:50deg;--rz:-6deg}
+  .app[data-screen="intro"] .deck{transform:translateY(-4%) scale(1.05);opacity:.4}
+  .app[data-screen="finale"] .deck{transform:translateY(14%) scale(.9);opacity:.95}
+  .app[data-fstep="1"] .deck,.app[data-fstep="2"] .deck{transform:translateY(14%) scale(.82);opacity:.3}
+  .app[data-fstep="b"] .deck{transform:translateY(14%) scale(.8);opacity:.05}
+  .app[data-fstep="3"] .deck{transform:translateY(12%) scale(.78);opacity:.22}
+  .home{font-size:10px;letter-spacing:.16em;max-width:13ch;text-align:left}
+  .nav button{padding:12px 7px}
+  .nav button::after{left:7px;right:7px}
+  .playall{padding-left:10px;margin-left:8px;gap:6px}
+  .playall .pa-label{display:none}            /* the mark alone carries it at phone width */
+  .intro h1{font-size:min(16.5vw,12vh)}
+  .intro-foot{flex-direction:column;align-items:flex-start;gap:24px}
+  .intro .enter{bottom:12px;font-size:9.5px;letter-spacing:.13em;gap:9px}
+  .intro .scroll{padding-bottom:84px}
+  .soundcheck .col,.market .col{width:100%}
+  .soundcheck .col{margin-bottom:0}
+  .display{font-size:clamp(36px,10.5vw,52px);margin:16px 0 30px}
+  .mcode{font-size:clamp(70px,21vw,100px)}
+  .stackcell{margin-top:20px}
+  .title{font-size:clamp(22px,6.4vw,28px)}
+  .artist{font-size:18px}
+  .dossier{margin-top:22px}
+  .transport{margin-top:22px}
+  .actions .next{margin-left:0}
+  .statement{font-size:clamp(22px,6.4vw,28px)}
+  .playlist .col{width:100%;margin-top:0;padding-top:6vh}
+  .app[data-screen="playlist"] .deck{opacity:.12}   /* the list is the interface at this width */
+  .pl-head{font-size:clamp(30px,8.4vw,40px);margin:14px 0 22px}
+  .pl-row{grid-template-columns:34px 1fr auto;gap:10px;padding:11px 0 10px}
+  .pl-title{font-size:14px}.pl-artist{font-size:13px}
+  .pl-transport{margin-top:22px;gap:14px;flex-wrap:wrap}
+  .pl-transport .pl-exit{margin-left:0;flex-basis:100%}
+  /* App-level now, so it stays a fixed corner frame here rather than sitting in the column */
+  .source{position:fixed;right:var(--pad);bottom:calc(var(--pad) * 1.25);width:44vw;margin-top:0;display:none}
+  .app.has-source .source{display:block}
+  .source.is-video{width:44vw}
+  .src-zoom{display:none}                          /* corner frame only at this width */
+  .app.has-source[data-screen="market"] .source.big,
+  .source.big{width:44vw;right:var(--pad);bottom:calc(var(--pad) * 1.25);transform:none}
+  .srcveil{display:none}
+  .hint{left:var(--pad);right:auto;text-align:left;bottom:auto;top:calc(var(--top) + var(--S) * .58)}
+  .hint{display:none}
+  .f-line{font-size:min(13vw,9vh)}
+  .f-2 .f-line{font-size:min(13vw,9vh)}
+  .f-title{font-size:min(14.5vw,10vh)}
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;transition-delay:0s!important;animation-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app" data-screen="intro" data-playing="false">
+  <div class="ambient" aria-hidden="true"></div>
+
+  <!-- ===================== TURNTABLE ===================== -->
+  <div class="deck" id="deck" aria-hidden="true">
+    <div class="floor"></div>
+    <div class="stage" id="stage">
+      <div class="platter" id="platter">
+        <div class="plinth-side" style="--i:8"></div><div class="plinth-side" style="--i:7"></div>
+        <div class="plinth-side" style="--i:6"></div><div class="plinth-side" style="--i:5"></div>
+        <div class="plinth-side" style="--i:4"></div><div class="plinth-side" style="--i:3"></div>
+        <div class="plinth-side" style="--i:2"></div><div class="plinth-side" style="--i:1"></div>
+        <div class="plinth">
+          <span class="led"></span>
+          <span class="knob"></span>
+          <span class="speed"><b>33</b>&nbsp;&nbsp;45</span>
+          <span class="etch">Listen between the lines</span>
+          <div class="rim" id="rim"></div>
+          <div class="record" id="record">
+            <div class="edge" style="--i:0"></div>
+            <div class="edge" style="--i:1"></div>
+            <div class="edge" style="--i:2"></div>
+            <div class="edge" style="--i:3"></div>
+            <div class="face back" id="discBack">
+              <div class="label">
+                <svg viewBox="0 0 200 200">
+                  <defs><path id="ringB" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0"/></defs>
+                  <circle class="lbl-accent" cx="100" cy="100" r="97"/>
+                  <text class="lbl-ring"><textPath href="#ringB" textLength="530" lengthAdjust="spacing">THE CULTURAL SIGNALS BEHIND THE SOUNDS   ·   GEN Z MUSIC   ·   </textPath></text>
+                  <g class="coded" shape-rendering="crispEdges" transform="translate(0,-4)"><rect x="65.88" y="35.6" width="27.3" height="4.2" fill="#ED4353"/><rect x="34.38" y="47.15" width="22.05" height="4.2" fill="#ED4353"/><rect x="86.88" y="105.95" width="26.25" height="4.2" fill="#02CFEA"/><rect x="111.03" y="112.25" width="42.0" height="4.2" fill="#ED4353"/><g fill="#fff"><rect x="48.02" y="59.75" width="11.55" height="4.2"/><rect x="45.92" y="63.95" width="4.2" height="5.25"/><rect x="57.48" y="63.95" width="5.25" height="5.25"/><rect x="43.82" y="69.2" width="4.2" height="13.65"/><rect x="45.92" y="82.85" width="4.2" height="5.25"/><rect x="57.48" y="82.85" width="5.25" height="5.25"/><rect x="48.02" y="88.1" width="11.55" height="4.2"/><rect x="72.17" y="59.75" width="9.45" height="4.2"/><rect x="69.03" y="63.95" width="5.25" height="5.25"/><rect x="79.53" y="63.95" width="5.25" height="5.25"/><rect x="67.97" y="69.2" width="4.2" height="13.65"/><rect x="81.62" y="69.2" width="5.25" height="13.65"/><rect x="69.03" y="82.85" width="5.25" height="5.25"/><rect x="79.53" y="82.85" width="5.25" height="5.25"/><rect x="72.17" y="88.1" width="9.45" height="4.2"/><rect x="91.08" y="59.75" width="4.2" height="32.55"/><rect x="91.08" y="59.75" width="13.65" height="4.2"/><rect x="101.58" y="63.95" width="5.25" height="5.25"/><rect x="103.67" y="69.2" width="5.25" height="13.65"/><rect x="101.58" y="82.85" width="5.25" height="5.25"/><rect x="91.08" y="88.1" width="13.65" height="4.2"/><rect x="116.28" y="59.75" width="5.25" height="32.55"/><rect x="116.28" y="59.75" width="14.7" height="4.2"/><rect x="116.28" y="73.4" width="14.7" height="5.25"/><rect x="116.28" y="88.1" width="14.7" height="4.2"/><rect x="138.32" y="59.75" width="5.25" height="32.55"/><rect x="138.32" y="59.75" width="14.7" height="4.2"/><rect x="148.82" y="63.95" width="5.25" height="5.25"/><rect x="150.93" y="69.2" width="5.25" height="13.65"/><rect x="148.82" y="82.85" width="5.25" height="5.25"/><rect x="138.32" y="88.1" width="14.7" height="4.2"/></g></g>
+                  <circle cx="100" cy="100" r="5.4" fill="#000" stroke="rgba(255,255,255,.12)" stroke-width=".6"/>
+                  <text class="lbl-code" x="100" y="140" text-anchor="middle">GEN Z MUSIC</text>
+                  <text class="lbl-small" x="100" y="153" text-anchor="middle">SIDE B</text>
+                </svg>
+              </div>
+            </div>
+            <div class="face front" id="disc">
+              <div class="label">
+                <svg viewBox="0 0 200 200">
+                  <defs><path id="ring" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0"/></defs>
+                  <circle class="lbl-accent" cx="100" cy="100" r="97"/>
+                  <text class="lbl-ring"><textPath href="#ring" id="ringText" textLength="530" lengthAdjust="spacing"></textPath></text>
+                  <g class="coded" shape-rendering="crispEdges" transform="translate(0,-4)"><rect x="65.88" y="35.6" width="27.3" height="4.2" fill="#ED4353"/><rect x="34.38" y="47.15" width="22.05" height="4.2" fill="#ED4353"/><rect x="86.88" y="105.95" width="26.25" height="4.2" fill="#02CFEA"/><rect x="111.03" y="112.25" width="42.0" height="4.2" fill="#ED4353"/><g fill="#fff"><rect x="48.02" y="59.75" width="11.55" height="4.2"/><rect x="45.92" y="63.95" width="4.2" height="5.25"/><rect x="57.48" y="63.95" width="5.25" height="5.25"/><rect x="43.82" y="69.2" width="4.2" height="13.65"/><rect x="45.92" y="82.85" width="4.2" height="5.25"/><rect x="57.48" y="82.85" width="5.25" height="5.25"/><rect x="48.02" y="88.1" width="11.55" height="4.2"/><rect x="72.17" y="59.75" width="9.45" height="4.2"/><rect x="69.03" y="63.95" width="5.25" height="5.25"/><rect x="79.53" y="63.95" width="5.25" height="5.25"/><rect x="67.97" y="69.2" width="4.2" height="13.65"/><rect x="81.62" y="69.2" width="5.25" height="13.65"/><rect x="69.03" y="82.85" width="5.25" height="5.25"/><rect x="79.53" y="82.85" width="5.25" height="5.25"/><rect x="72.17" y="88.1" width="9.45" height="4.2"/><rect x="91.08" y="59.75" width="4.2" height="32.55"/><rect x="91.08" y="59.75" width="13.65" height="4.2"/><rect x="101.58" y="63.95" width="5.25" height="5.25"/><rect x="103.67" y="69.2" width="5.25" height="13.65"/><rect x="101.58" y="82.85" width="5.25" height="5.25"/><rect x="91.08" y="88.1" width="13.65" height="4.2"/><rect x="116.28" y="59.75" width="5.25" height="32.55"/><rect x="116.28" y="59.75" width="14.7" height="4.2"/><rect x="116.28" y="73.4" width="14.7" height="5.25"/><rect x="116.28" y="88.1" width="14.7" height="4.2"/><rect x="138.32" y="59.75" width="5.25" height="32.55"/><rect x="138.32" y="59.75" width="14.7" height="4.2"/><rect x="148.82" y="63.95" width="5.25" height="5.25"/><rect x="150.93" y="69.2" width="5.25" height="13.65"/><rect x="148.82" y="82.85" width="5.25" height="5.25"/><rect x="138.32" y="88.1" width="14.7" height="4.2"/></g></g>
+                  <circle cx="100" cy="100" r="5.4" fill="#000" stroke="rgba(255,255,255,.12)" stroke-width=".6"/>
+                  <text id="lblCode" class="lbl-code" x="100" y="140" text-anchor="middle">GEN Z</text>
+                  <text id="lblSmall" class="lbl-small" x="100" y="153" text-anchor="middle">SIDE A</text>
+                </svg>
+              </div>
+            </div>
+            <div class="sheen"></div>
+          </div>
+          <span class="spindle"></span>
+          <div class="arm-base"></div>
+          <div class="arm" id="arm">
+            <span class="weight"></span>
+            <svg viewBox="0 0 40 376" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="metal" gradientUnits="userSpaceOnUse" x1="14" y1="0" x2="26" y2="0">
+                  <stop offset="0" stop-color="#6b665f"/><stop offset=".5" stop-color="#d2cbbf"/><stop offset="1" stop-color="#5a5550"/>
+                </linearGradient>
+              </defs>
+              <line x1="20" y1="0" x2="20" y2="316" stroke="url(#metal)" stroke-width="5" stroke-linecap="round"/>
+              <path d="M9 314 h22 l2 48 h-26 z" fill="#1d1b19" stroke="rgba(237,230,218,.28)" stroke-width="1"/>
+              <line x1="31" y1="326" x2="39" y2="320" stroke="url(#metal)" stroke-width="2.4" stroke-linecap="round"/>
+              <rect x="13" y="352" width="14" height="6" rx="1" style="fill:var(--accent)"/>
+              <circle cx="20" cy="0" r="7" fill="url(#metal)"/>
+            </svg>
+          </div>
+          <div class="arm-shadow" id="armShadow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="topbar">
+    <button class="home meta" id="homeBtn" aria-label="Listen between the lines. Back to the start">Listen between the lines</button>
+    <div class="navwrap">
+      <nav class="nav meta" id="nav" aria-label="Markets"></nav>
+      <button class="playall meta" id="playAllBtn" aria-pressed="false">
+        <span class="pa-ico" aria-hidden="true">
+          <svg class="i-play" width="8" height="10" viewBox="0 0 8 10"><path d="M1 .8v8.4L7.4 5z" fill="currentColor"/></svg>
+          <svg class="i-stop" width="8" height="8" viewBox="0 0 8 8"><rect width="8" height="8" fill="currentColor"/></svg>
+        </span><span class="pa-label">Immerse in The Full Jam</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ OPENING ============ -->
+    <section class="screen intro" id="intro" data-name="intro" aria-labelledby="introTitle">
+      <div class="scroll">
+        <div class="col" style="width:100%">
+          <h1 id="introTitle" tabindex="-1" aria-label="Listen between the lines.">
+            <span class="ln" style="--d:0" aria-hidden="true"><span>Listen</span></span>
+            <span class="ln" style="--d:1" aria-hidden="true"><span>Between</span></span>
+            <span class="ln" style="--d:2" aria-hidden="true"><span>The lines.</span></span>
+          </h1>
+          <div class="intro-foot">
+            <p class="intro-q">What can Gen Z’s music tell us about culture?</p>
+          </div>
+        </div>
+      </div>
+      <button class="link enter" id="enterBtn">Scroll to enter the experience <span class="arr down" aria-hidden="true">↓</span></button>
+    </section>
+
+    <!-- ============ SOUNDCHECK ============ -->
+    <section class="screen soundcheck" id="soundcheck" data-name="soundcheck" aria-labelledby="scTitle">
+      <div class="scroll">
+        <div class="col">
+          <p class="eyebrow meta">Gen Z soundcheck</p>
+          <h2 class="display" id="scTitle" tabindex="-1">
+            <span class="ln" style="--d:0"><span>Four markets.</span></span>
+            <span class="ln" style="--d:1"><span>Eight tracks.</span></span>
+            <span class="ln" style="--d:2"><span>One generation.</span></span>
+          </h2>
+          <div class="index" id="marketIndex" role="group" aria-label="Choose a market"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MARKET PLAYER + SIGNAL ============ -->
+    <section class="screen market" id="market" data-name="market" aria-labelledby="mcode">
+      <div class="scroll">
+        <div class="col" id="col">
+          <p class="mindex meta fade" style="--d:0"><span id="mIndex">Market 01 / 04</span></p>
+          <h2 class="mcode" id="mcode" tabindex="-1"><span class="ln" style="--d:0"><span id="mcodeTxt">UK</span></span></h2>
+
+          <div class="stackcell">
+            <!-- Track -->
+            <div class="panel" id="trackPanel">
+              <p class="title"><span class="ln" style="--d:1"><span id="title">Track</span></span></p>
+              <p class="artist"><span class="ln" style="--d:2"><span id="artist">Artist</span></span></p>
+              <p class="quote fade" id="quote" style="--d:2" hidden></p>
+              <div class="cycler meta fade" id="cycler" style="--d:3" hidden>
+                <button class="cyc-btn" id="prevTrack" aria-label="Previous track">
+                  <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true"><path d="M13 5H1m4-4L1 5l4 4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+                </button>
+                <span class="cyc-count" id="cycCount" aria-live="polite">Track 01 / 03</span>
+                <button class="cyc-btn" id="nextTrack" aria-label="Next track">
+                  <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true"><path d="M1 5h12M9 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+                </button>
+              </div>
+              <dl class="dossier fade" id="dossier" style="--d:4">
+                <dt class="meta ctx" id="dCtxT">Context</dt><dd class="ctx" id="dCtx"></dd>
+              </dl>
+              <div class="transport fade" style="--d:5">
+                <button class="play" id="playBtn" aria-label="Listen">
+                  <svg class="i-play" width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1.2v11.6L11 7z" fill="currentColor"/></svg>
+                  <svg class="i-pause" width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1.5" y="1" width="3" height="12" fill="currentColor"/><rect x="7.5" y="1" width="3" height="12" fill="currentColor"/></svg>
+                </button>
+                <div class="wave">
+                  <canvas id="wave" role="slider" tabindex="0" aria-label="Playback position" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" aria-valuetext="0:00"></canvas>
+                  <div class="time-row meta"><span class="state" id="playLabel">Listen</span><span><span id="tCur">0:00</span> / <span id="tDur">0:30</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Signal -->
+            <div class="panel off" id="signalPanel" inert>
+              <p class="signal-eyebrow meta"><span id="signalTitle" tabindex="-1">What we’re hearing</span><span class="draft" id="draft" hidden>Placeholder signal</span></p>
+              <p class="statement" id="statement"></p>
+              <div class="nowplaying meta"><span id="npText"></span><span id="npTime">0:00</span></div>
+              <div class="minibar" aria-hidden="true"><i id="miniBar"></i></div>
+            </div>
+          </div>
+
+          <div class="actions fade" style="--d:6">
+            <a class="link muted only-track" id="openTrack" href="#TRACK-LINK">Open track <span class="arr ne" aria-hidden="true">↗</span></a>
+            <button class="link muted only-track needs-play" id="hearBtn">What we’re hearing</button>
+            <button class="link muted only-signal" id="backBtn"><span class="arr back" aria-hidden="true">←</span> Back to track</button>
+            <button class="link next" id="nextBtn"><span class="nx">Next market</span> <span class="arr" aria-hidden="true">→</span></button>
+          </div>
+
+        </div>
+        <p class="hint meta" aria-hidden="true">Drag the record<br>Lower the arm to listen</p>
+      </div>
+    </section>
+
+    <!-- ============ PLAYLIST (play all) ============ -->
+    <section class="screen playlist" id="playlist" data-name="playlist" aria-labelledby="plTitle">
+      <div class="scroll">
+        <div class="col">
+          <p class="eyebrow meta fade" style="--d:0">Side A</p>
+          <h2 class="pl-head" id="plTitle" tabindex="-1"><span class="ln" style="--d:0"><span>The Full Jam</span></span></h2>
+          <div class="pl-list" id="plList" role="list"></div>
+          <div class="pl-transport meta fade" style="--d:2">
+            <button class="play play-sm" id="plPlayBtn" aria-label="Pause">
+              <svg class="i-play" width="10" height="12" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1.2v11.6L11 7z" fill="currentColor"/></svg>
+              <svg class="i-pause" width="10" height="12" viewBox="0 0 12 14" aria-hidden="true"><rect x="1.5" y="1" width="3" height="12" fill="currentColor"/><rect x="7.5" y="1" width="3" height="12" fill="currentColor"/></svg>
+            </button>
+            <span id="plCount">01 / 08</span>
+            <span class="pl-time"><span id="plCur">0:00</span> / <span id="plDur">–:––</span></span>
+            <button class="link muted pl-exit" id="plExit">Leave the playlist <span class="arr" aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FINAL REVEAL ============ -->
+    <section class="screen finale" id="finale" data-name="finale" data-step="0" aria-labelledby="fTitle">
+      <div class="scroll">
+        <div class="f-stage">
+          <div class="f-step f-1">
+            <p class="f-line">
+              <span class="ln" style="--d:0"><span>You heard</span></span>
+              <span class="ln" style="--d:1"><span>the tracks.</span></span>
+            </p>
+          </div>
+          <div class="f-step f-2">
+            <p class="f-line">
+              <span class="ln" style="--d:0"><span>Now hear</span></span>
+              <span class="ln" style="--d:1"><span>the bigger</span></span>
+              <span class="ln" style="--d:2"><span>story.</span></span>
+            </p>
+          </div>
+          <div class="f-step f-3">
+            <p class="eyebrow meta">Side B</p>
+            <h2 class="f-title" id="fTitle" tabindex="-1">
+              <span class="ln" style="--d:0"><span>Gen Z Music</span></span>
+            </h2>
+            <p class="f-sub">The cultural signals behind the sounds.</p>
+            <div class="f-ctas">
+              <a class="btn-report" id="reportLink" href="#REPORT-LINK"><span id="reportLabel">Read the report</span> <span class="arr" aria-hidden="true">→</span></a>
+              <button class="btn-ghost" id="jamBtn">
+                <span class="jam-ico" aria-hidden="true"><svg width="8" height="10" viewBox="0 0 8 10"><path d="M1 .8v8.4L7.4 5z" fill="currentColor"/></svg></span>
+                Immerse in The Full Jam
+              </button>
+              <button class="btn-ghost" id="againBtn">Explore the sounds again <span class="arr back" aria-hidden="true">↻</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="link muted skip" id="skipBtn">Skip <span class="arr" aria-hidden="true">→</span></button>
+    </section>
+  </main>
+
+  <!-- Source window: app-level so it can float over the market AND the playlist -->
+  <div class="srcveil" id="srcVeil" hidden></div>
+  <div class="source" id="source">
+    <div class="cap meta"><span>Source</span><span id="sourceKind">YouTube</span></div>
+    <div class="frame" id="sourceFrame"><button type="button" class="src-zoom" id="srcZoom" aria-pressed="false" hidden><span aria-hidden="true">⤢</span><span class="sr-only">Enlarge the video</span></button></div>
+  </div>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="sr-only" aria-live="polite" id="live"></div>
+</div>
+
+<script>
+/* =========================================================
+   CONTENT  —  edit everything here
+   ---------------------------------------------------------
+   reportUrl   : replace '#REPORT-LINK' with the live report URL
+   media       : URL of an in-page audio/video file (takes priority over YouTube)
+   mediaParts  : use INSTEAD of media when a track is too long to fit one 20 MiB
+                 asset. List the segments in order; the page stitches them back
+                 into one timeline so the track keeps its full bitrate.
+   mediaDur    : total seconds across those segments (keeps the scrubber honest)
+   mediaAudio  : optional sound-only file, used by 'Immerse in The Full Jam' so the
+                 playlist does not download the video payload
+   mediaKind   : 'video' shows it in the source window; 'audio' plays sound only
+   youtube     : YouTube video ID; plays in the page where the host allows
+                 embeds, otherwise falls back to a simulated preview
+   streamUrl   : optional authorised Spotify / Apple Music link; overrides
+                 the YouTube link on "Open track"
+   context     : optional one-line context (shows in the dossier)
+   signal      : one line per array item
+   signalDraft : true shows a "Placeholder signal" tag until signed off
+   ========================================================= */
+const QUOTE_US_OLIVIA = '“She is the Gen Z pop star, the song represents loss of childhood naivete and also the transition to independence.”';
+const QUOTE_US_UNDERSCORES = '“It’s strangely out-of-time and placeless in the way that a lot of Gen Z music is: 2000s style pop filtered through the artist’s love of K-pop and rewired with Skrillex electro-pistons and bass bombs.”';
+const QUOTE_FR_LAVAR = '“To me it encapsulates French speaking Gen Z: it’s fresh, new, mixes so many influences mostly from the African diasporas (as do all music that has been trending in France lately).”';
+const QUOTE_FR_PANGOR = '“Pangor is the essence of what’s been trending a lot in the market recently: a high-energy beat, easy-to-remember lyrics, verbal gimmicks and African influences.”';
+const QUOTE_DE_MARCO = '“It captures how Gen Z takes something familiar, reinterprets it and turns it into something completely new.”';
+const QUOTE_DE_TINASHE = '“Clubbing as a cultural practice is losing relevance amongst the younger generation (at least in the general public) due to rising cost and the impact of Covid; dance music comes to serve different purposes, and this song is an example of that.”';
+const QUOTE_UK_EMAN = '“The UK underground scene’s hallmarks of distortion and breakneck pace, is visually underpinned by a nostalgia for previous eras.”';
+const QUOTE_UK_TYLA = '“This represents their globally-local approach to music… it’s a clash of sounds, movements, eras of time.”';
+
+const MIME40 = 'video/mp4; codecs="avc1.640028,mp4a.40.2"';   // H.264 High @ 4.0 (the 1080p-sourced re-encodes)
+
+const CONFIG = {
+  reportUrl: '#REPORT-LINK',
+  previewSeconds: 30,     // simulated preview length (tracks without a playable embed)
+  signalRevealAt: 12,     // seconds of listening before the signal appears
+  youtubeEmbeds: true,    // set false to always use the simulated preview
+  markets: [
+    {
+      code: 'UK', name: 'United Kingdom', accent: '#C9A77C',
+      signal: ['Globally-local approach to music'],
+      signalDraft: false,
+      tracks: [
+        { artist: 'Young Eman', title: 'Popstar in da bits', context: '', quote: QUOTE_UK_EMAN, quoteBy: 'Solomon Pace-McCarrick', mediaParts: ['assets/823313db5a891f4c109ce974142cc387.mp4', 'assets/ba51a7209da6b95716e6360e1e2c77e7.mp4'], mediaDur: 139.39, mediaW: 1280, mediaMime: MIME40, mediaAudio: 'assets/3b7db4b71b8f2a3b2f5b2be4af9f126f.mp4', mediaKind: 'video', youtube: 'UuRTJuIRaFQ', streamUrl: '' },
+        { artist: 'Tyla', title: 'Mr Nonchalant', context: '', quote: QUOTE_UK_TYLA, quoteBy: 'Nicolas-Tyrell Scott', mediaParts: ['assets/3e80e0b385f577eb8eba30a9eb88c339.mp4', 'assets/abaf0fb7b883ae4472e1610ddb6eb2a8.mp4'], mediaDur: 138.52, mediaW: 1280, mediaMime: MIME40, mediaAudio: 'assets/810d459f5c413329fc361a48291bd156.mp4', mediaKind: 'video', youtube: 'rKsZTjA9Hs4', streamUrl: '' }
+      ]
+    },
+    {
+      code: 'US', name: 'United States', accent: '#8FA9C4',
+      signal: ['Genre is losing its grip.', 'Mood is how a generation sorts its music.'],
+      signalDraft: false,
+      tracks: [
+        { artist: 'Olivia Rodrigo', title: 'Drivers License', context: '', quote: QUOTE_US_OLIVIA, quoteBy: 'Sidney Madden', mediaParts: ['assets/69fec37bf5fddb24541d0c43ace079b8.mp4', 'assets/39f3e35dd3e5c7b7d75aaea1e30f16f3.mp4', 'assets/0df20287f7cac77d71266c5318f29b98.mp4'], mediaDur: 247.36, mediaW: 1280, mediaMime: MIME40, mediaAudio: 'assets/0a02ae67b39104e6c92159c703a50f45.mp4', mediaKind: 'video', youtube: 'ZmDBbnmKpqQ', streamUrl: '' },
+        { artist: 'underscores', title: 'Music', context: '', quote: QUOTE_US_UNDERSCORES, quoteBy: 'Kieran Press-Reynolds', mediaParts: ['assets/344873c318ac3740f5ffca353801a5c1.mp4', 'assets/f53d4da08dff480c469a2f945621941b.mp4', 'assets/a4c88f0a27546479d3351c934dcacc60.mp4'], mediaDur: 207.74, mediaW: 1280, mediaMime: MIME40, mediaAudio: 'assets/8744a4a40d42054f7644c18bba0a7027.mp4', mediaKind: 'video', youtube: 'UNYqwpx7Cys', streamUrl: '' }
+      ]
+    },
+    {
+      code: 'FR', name: 'France', accent: '#CF9C95',
+      signal: ['Discovery now happens in fragments.', 'A fifteen-second hook travels further than an album.'],
+      signalDraft: false,
+      tracks: [
+        { artist: 'Supremnova', title: 'La Var', context: '', quote: QUOTE_FR_LAVAR, quoteBy: 'Camille Emilie', media: 'assets/c2e4281ece293b482c91b33899e653f3.mp4', mediaKind: 'audio', youtube: 'ISGJz8RILdU', streamUrl: '' },
+        { artist: 'Djaksparo', title: 'Pangor', context: '', quote: QUOTE_FR_PANGOR, quoteBy: 'Zakaria Ismaïl', media: 'assets/09697e6307d54af0ede2c66810e9649e.mp4', mediaW: 1280, mediaKind: 'video', youtube: 'q6J4Frq6t3k', streamUrl: '' }
+      ]
+    },
+    {
+      code: 'DE', name: 'Germany', accent: '#AEBB8C',
+      signal: ['Local scenes are going global by default.', 'Collaboration crosses borders from day one.'],
+      signalDraft: false,
+      tracks: [
+        { artist: 'Young Marco', title: 'What You Say', context: '', quote: QUOTE_DE_MARCO, quoteBy: 'ASA', mediaParts: ['assets/786cde8554cb2574d04502709594275d.mp4', 'assets/99c9fa2f8baf666e8e8b156f48e21898.mp4', 'assets/02572856287dac4adf48c20341da0c78.mp4', 'assets/b309a400fc2c4441952db5c299f1cc7a.mp4'], mediaDur: 398.56, mediaW: 1280, mediaAudio: 'assets/a946797479faa0438f71406b0e500b16.mp4', mediaKind: 'video', youtube: 'psSIJig_xnY', streamUrl: '' },
+        { artist: 'Tinashe & Disco Lines', title: 'No Broke Boys', context: '', quote: QUOTE_DE_TINASHE, quoteBy: 'Aida Baghernejad', media: 'assets/188571fb3521215ca6d866c9ee4195d1.mp4', mediaKind: 'audio', youtube: 'nS-fOh1CfhQ', streamUrl: '' }
+      ]
+    }
+  ]
+};
+
+/* =========================================================
+   ENGINE
+   ========================================================= */
+(() => {
+  const $ = s => document.querySelector(s);
+  const app = $('#app'), deck = $('#deck'), stage = $('#stage'), platter = $('#platter');
+  const record = $('#record'), disc = $('#disc'), discBack = $('#discBack'), rim = $('#rim');
+  const arm = $('#arm'), armShadow = $('#armShadow'), armBase = document.querySelector('.arm-base');
+  const col = $('#col'), finale = $('#finale'), intro = $('#intro'), soundcheck = $('#soundcheck');
+  const canvas = $('#wave'), ctx = canvas.getContext('2d');
+  const els = {
+    mIndex: $('#mIndex'), mcode: $('#mcode'), mcodeTxt: $('#mcodeTxt'), artist: $('#artist'), title: $('#title'),
+    quote: $('#quote'), cycler: $('#cycler'), cycCount: $('#cycCount'), dossier: $('#dossier'), dCtx: $('#dCtx'), dCtxT: $('#dCtxT'),
+    dMarket: document.createElement('dd'), dSource: document.createElement('dd'),   // off-screen: the engine still writes to these
+    tCur: $('#tCur'), tDur: $('#tDur'), playBtn: $('#playBtn'), playLabel: $('#playLabel'), openTrack: $('#openTrack'),
+    nextBtn: $('#nextBtn'), trackPanel: $('#trackPanel'), signalPanel: $('#signalPanel'),
+    statement: $('#statement'), draft: $('#draft'), npText: $('#npText'), npTime: $('#npTime'), miniBar: $('#miniBar'),
+    ringText: $('#ringText'), lblCode: $('#lblCode'), lblSmall: $('#lblSmall'),
+    live: $('#live'), nav: $('#nav'), index: $('#marketIndex'),
+    plList: $('#plList'), plCount: $('#plCount'), plCur: $('#plCur'), plDur: $('#plDur'), plPlayBtn: $('#plPlayBtn'), skip: $('#skipBtn'), sourceFrame: $('#sourceFrame'), source: $('#source'), sourceKind: $('#sourceKind'),
+    srcZoom: $('#srcZoom'), srcVeil: $('#srcVeil')
+  };
+
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = mq.matches;
+  mq.addEventListener && mq.addEventListener('change', e => { reduced = e.matches; });
+
+  const LAST = CONFIG.markets.length - 1;
+  // every track in running order, so one button can play the whole side
+  const PLAYLIST = [];
+  CONFIG.markets.forEach((m, mi) => m.tracks.forEach((t, ti) => PLAYLIST.push({ m: mi, t: ti })));
+  const playlistAt = () => PLAYLIST.findIndex(x => x.m === state.m && x.t === state.t);
+  const NEUTRAL = '#8A8278';
+  const state = {
+    screen: 'intro', m: -1, t: 0, playing: false, elapsed: 0, listened: 0, signal: false,
+    visited: new Set(), signalSeen: new Set(), boostUntil: 0, busy: false, playAll: false, big: false
+  };
+  let pendingPlay = false;                          // play as soon as the next record lands
+
+  const pad2 = n => String(n).padStart(2, '0');
+  const fmt = s => { if (!isFinite(s)) return '–:––'; s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + pad2(s % 60); };
+  const announce = msg => { els.live.textContent = ''; setTimeout(() => { els.live.textContent = msg; }, 40); };
+  const mk = () => CONFIG.markets[state.m];
+  const tr = () => mk().tracks[state.t];
+  const wait = ms => reduced ? 0 : ms;
+  const later = (fn, ms) => setTimeout(fn, wait(ms));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  /* ---------- Build nav + market index ---------- */
+  CONFIG.markets.forEach((m, i) => {
+    const n = document.createElement('button');
+    n.type = 'button';
+    n.style.setProperty('--c', m.accent);
+    n.setAttribute('aria-label', `${m.code}, ${m.name}`);
+    n.textContent = m.code;
+    n.addEventListener('click', () => selectMarket(i));
+    els.nav.appendChild(n);
+
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'row';
+    b.style.setProperty('--c', m.accent);
+    b.style.setProperty('--d', i);
+    b.setAttribute('aria-label', `${m.code}, ${m.name}`);
+    b.innerHTML = `<span class="code">${m.code}</span><span class="nm">${m.name}</span>`;
+    b.addEventListener('click', () => selectMarket(i));
+    els.index.appendChild(b);
+  });
+  PLAYLIST.forEach((x, i) => {                       // the list is built from the same data the markets use
+    const m = CONFIG.markets[x.m], t = m.tracks[x.t];
+    const row = document.createElement('div');
+    row.className = 'pl-row';
+    row.style.setProperty('--d', i);
+    row.setAttribute('role', 'listitem');
+    row.innerHTML =
+      `<button class="pl-open" type="button">` +
+        `<span class="pl-code">${m.code}</span>` +
+        `<span class="pl-main"><span class="pl-title"></span><span class="pl-artist"></span>` +
+          `<span class="pl-sig"><span class="pl-sig-in"><span class="pl-q"></span><span class="pl-by"></span></span></span></span>` +
+        `<span class="pl-num">${pad2(i + 1)}</span><span class="pl-bars" aria-hidden="true"><i></i><i></i><i></i></span>` +
+      `</button>` +
+      `<div class="pl-bar" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">` +
+        `<i class="rail"></i><i class="fill"></i><i class="knob"></i>` +
+      `</div>`;
+    const open = row.querySelector('.pl-open'), bar = row.querySelector('.pl-bar');
+    row.querySelector('.pl-artist').textContent = t.artist;
+    row.querySelector('.pl-title').textContent = t.title;
+    row.querySelector('.pl-q').textContent = t.quote || '';
+    row.querySelector('.pl-by').textContent = t.quoteBy ? `— ${t.quoteBy}` : '';
+    open.setAttribute('aria-label', `Play ${t.title} by ${t.artist}, ${m.name}`);
+    bar.setAttribute('aria-label', `Seek within ${t.title}`);
+    open.addEventListener('click', () => playlistGo(i, true));
+    bar.addEventListener('pointerdown', e => plScrubDown(e, i, row, bar));
+    bar.addEventListener('keydown', e => {
+      const live = i === playlistAt(), d = dur();
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (live && isFinite(d)) seek(elapsed() + (e.key === 'ArrowRight' ? 5 : -5));
+        else { queuedSeek = e.key === 'ArrowRight' ? 0.1 : 0; playlistGo(i, true); }
+      } else if (e.key === 'Home') { e.preventDefault(); live ? seek(0) : playlistGo(i, true); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); live ? togglePlay() : playlistGo(i, true); }
+    });
+    bar.addEventListener('focus', () => row.classList.add('scrub-focus'));
+    bar.addEventListener('blur', () => row.classList.remove('scrub-focus'));
+    els.plList.appendChild(row);
+  });
+
+  const reportSoon = !CONFIG.reportUrl || CONFIG.reportUrl === '#REPORT-LINK';
+  if (reportSoon) {                                 // swap in the real URL and it becomes the CTA again
+    const a = $('#reportLink');
+    a.classList.add('soon');
+    a.removeAttribute('href');
+    a.setAttribute('aria-disabled', 'true');
+    $('#reportLabel').textContent = 'Full story coming soon';
+    $('#jamBtn').classList.add('solid');            // the live action carries the weight
+  } else $('#reportLink').setAttribute('href', CONFIG.reportUrl);
+
+  /* ---------- Screens ---------- */
+  function setScreen(name, focusEl) {
+    deck.classList.remove('tracking');
+    if (name !== 'market') setBig(false);
+    state.screen = name;
+    app.dataset.screen = name;
+    document.querySelectorAll('.screen').forEach(s => {
+      const on = s.dataset.name === name;
+      s.classList.toggle('is-active', on);
+      s.classList.remove('leaving');
+      s.inert = !on;
+    });
+    if (focusEl) later(() => focusEl.focus({ preventScroll: true }), 500);
+  }
+
+  /* ---------- Label ---------- */
+  function setLabel(code, ring, small) {
+    els.lblCode.textContent = code;
+    els.ringText.textContent = ring;
+    els.lblSmall.textContent = small;
+  }
+  function idleLabel() {
+    app.style.setProperty('--accent', NEUTRAL);
+    setLabel('GEN Z', 'LISTEN BETWEEN THE LINES   ·   GEN Z SOUNDCHECK   ·   33⅓ RPM   ·   ', 'SIDE A');
+  }
+
+  /* =========================================================
+     IN-PAGE MEDIA  (uploaded audio/video; most reliable path)
+     ========================================================= */
+  const MEDIA = { el: null, failed: new Set(), fadeIv: null, pendingP: null };
+  /* A track may carry one file (media) or a set of segments (mediaParts) stitched
+     in-page via MediaSource. Segments exist because a single asset is capped at
+     20 MiB — splitting lifts the ceiling so a long track keeps its full bitrate. */
+  const MS_MIME = 'video/mp4; codecs="avc1.64001F,mp4a.40.2"';   // H.264 High, level 3.1
+  const mimeOf = t => (t && t.mediaMime) || MS_MIME;
+  const msSupported = t => !!(window.MediaSource && MediaSource.isTypeSupported(mimeOf(t)));
+  const partsOf = t => (t && t.mediaParts && t.mediaParts.length) ? t.mediaParts : null;
+  const mediaKey = t => t ? (t.media || (partsOf(t) ? partsOf(t)[0] : '')) : '';
+  const hasMedia = t => {
+    if (!t) return false;
+    const p = partsOf(t);
+    if (p && !msSupported(t)) return false;         // no stitching here, so use the fallback
+    return !!(t.media || p) && !MEDIA.failed.has(mediaKey(t));
+  };
+  /* The enlarged view is a quarter of the screen by area, but never more pixels than
+     the source actually holds. Tracks below that bar simply do not offer it. */
+  const ZOOM_MIN_W = 1280;
+  const canZoom = t => hasMedia(t) && t.mediaKind !== 'audio' && (t.mediaW || 0) >= ZOOM_MIN_W;
+  /* Chromium can strip the fullscreen button out of the native controls; other browsers
+     cannot. Where it cannot be removed, show no native controls at all rather than leave
+     a fullscreen button that does nothing — the page carries its own transport anyway. */
+  const CL_OK = (() => {
+    try {
+      const t = document.createElement('video');
+      return !!(t.controlsList && typeof t.controlsList.supports === 'function'
+        && t.controlsList.supports('nofullscreen'));
+    } catch (e) { return false; }
+  })();
+  const usingMedia = () => state.m >= 0 && hasMedia(tr());
+  const mediaReady = () => !!(MEDIA.el && MEDIA.el.getAttribute('src'));
+  function mediaEl() {
+    if (MEDIA.el) return MEDIA.el;
+    const v = document.createElement('video');
+    v.preload = 'auto'; v.controls = CL_OK; v.playsInline = true;
+    v.setAttribute('playsinline', '');
+    /* No native fullscreen: none of these sources hold enough pixels to survive it.
+       The enlarge control below goes as far as the footage genuinely supports. */
+    v.setAttribute('controlsList', 'nofullscreen noremoteplayback nodownload');
+    v.disablePictureInPicture = true;
+    v.addEventListener('play', () => {
+      if (drag.hold || state.screen !== 'market' || !usingMedia()) return;
+      if (!state.playing) { state.playing = true; col.classList.add('has-played'); updatePlayUI(); }
+    });
+    v.addEventListener('pause', () => {
+      if (drag.hold || v.ended || !usingMedia()) return;
+      if (state.playing) { state.playing = false; updatePlayUI(); }
+    });
+    v.addEventListener('ended', () => { if (usingMedia()) onEnd(); });
+    v.addEventListener('loadedmetadata', () => {
+      if (MEDIA.pendingP != null && isFinite(v.duration)) { v.currentTime = MEDIA.pendingP * v.duration; MEDIA.pendingP = null; }
+      updateTime(true); waveDirty = true;
+    });
+    v.addEventListener('error', () => {
+      if (!v.getAttribute('src')) return;
+      const wasPlaying = state.playing;
+      const bad = MEDIA.key || v.getAttribute('src');
+      MEDIA.failed.add(bad);                        // only this track falls back
+      mediaUnload();
+      state.playing = false;
+      renderSource(); updatePlayUI(); updateTime(true);
+      announce('The in-page video could not load. Using the fallback.');
+      if (wasPlaying) play();
+    });
+    MEDIA.el = v;
+    return v;
+  }
+  /* Stitch the segments back into one continuous timeline. 'sequence' mode lays each
+     appended segment directly after the last, so the parts need no shared clock. */
+  function msAttach(v, parts, total, mime) {
+    const ms = new MediaSource();
+    MEDIA.ms = ms;
+    MEDIA.msUrl = URL.createObjectURL(ms);
+    v.src = MEDIA.msUrl;
+    const token = MEDIA.key;
+    ms.addEventListener('sourceopen', async () => {
+      if (MEDIA.ms !== ms) return;
+      let sb;
+      try {
+        sb = ms.addSourceBuffer(mime);
+        sb.mode = 'sequence';
+        if (total) { try { ms.duration = total; } catch (e) {} }
+      } catch (e) { return msFail(token); }
+      for (const p of parts) {
+        if (MEDIA.ms !== ms) return;                // track changed under us
+        try {
+          const buf = await (await fetch(p)).arrayBuffer();
+          if (MEDIA.ms !== ms) return;
+          await new Promise((res, rej) => {
+            sb.addEventListener('updateend', res, { once: true });
+            sb.addEventListener('error', rej, { once: true });
+            sb.appendBuffer(buf);
+          });
+        } catch (e) { return msFail(token); }
+      }
+      if (MEDIA.ms === ms && ms.readyState === 'open') { try { ms.endOfStream(); } catch (e) {} }
+    }, { once: true });
+  }
+  function msFail(token) {
+    if (MEDIA.key !== token) return;
+    MEDIA.failed.add(token);                        // this track drops to the fallback
+    const wasPlaying = state.playing;
+    mediaUnload(); state.playing = false;
+    renderSource(); updatePlayUI(); updateTime(true);
+    announce('The in-page video could not load. Using the fallback.');
+    if (wasPlaying) play();
+  }
+  function msDetach() {
+    if (MEDIA.ms) { try { if (MEDIA.ms.readyState === 'open') MEDIA.ms.endOfStream(); } catch (e) {} }
+    if (MEDIA.msUrl) { URL.revokeObjectURL(MEDIA.msUrl); MEDIA.msUrl = ''; }
+    MEDIA.ms = null;
+  }
+  function mediaLoad(t, kind) {
+    const v = mediaEl();
+    const lite = (kind === 'audio' && t.mediaAudio && !MEDIA.failed.has(t.mediaAudio))
+      ? t.mediaAudio : '';                          // playlist runs sound only: skip the video payload
+    const parts = lite ? null : partsOf(t);
+    const key = lite || mediaKey(t);
+    if (MEDIA.key !== key) {
+      msDetach();
+      MEDIA.key = key;
+      if (parts) msAttach(v, parts, t.mediaDur, mimeOf(t));
+      else v.src = lite || t.media;
+    }
+    v.volume = 1;
+    if (!v.parentNode) { ytDestroy(); els.sourceFrame.appendChild(v); }
+    const isVideo = kind !== 'audio';
+    els.source.classList.toggle('is-video', isVideo);
+    app.classList.toggle('has-source', isVideo);   // audio-only: no window, sound only
+    els.sourceKind.textContent = 'Video';
+    return v;
+  }
+  function mediaUnload() {
+    const v = MEDIA.el;
+    if (!v) return;
+    clearInterval(MEDIA.fadeIv);
+    MEDIA.pendingP = null;
+    v.pause();
+    msDetach();
+    MEDIA.key = '';
+    if (v.getAttribute('src')) { v.removeAttribute('src'); v.load(); }
+    v.remove();
+    setBig(false);
+    els.source.classList.remove('is-video');
+    app.classList.remove('has-source');
+  }
+
+  /* =========================================================
+     YOUTUBE  (iframe + postMessage; no external script needed)
+     Falls back to the simulated preview if the host blocks embeds.
+     ========================================================= */
+  const YT = { frame: null, id: null, ready: false, blocked: !CONFIG.youtubeEmbeds, time: 0, stamp: 0, dur: 0, ps: -1, hs: null, fail: null, fadeIv: null };
+  const hasYT = t => !!(t && t.youtube) && !YT.blocked;
+  const usingYT = () => state.m >= 0 && !usingMedia() && hasYT(tr());
+  function ytPost(obj) { try { YT.frame && YT.frame.contentWindow && YT.frame.contentWindow.postMessage(JSON.stringify(obj), '*'); } catch (e) {} }
+  function ytCmd(func, args = []) { ytPost({ event: 'command', func, args, id: 1, channel: 'widget' }); }
+  function ytLoad(id) {
+    mediaUnload();
+    ytDestroy();
+    els.sourceKind.textContent = 'YouTube';
+    YT.id = id; YT.ready = false; YT.time = 0; YT.stamp = performance.now(); YT.dur = 0; YT.ps = -1;
+    const f = document.createElement('iframe');
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&autoplay=1&playsinline=1&rel=0&controls=1`;
+    f.title = `YouTube video: ${tr().artist}, ${tr().title}`;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture';
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    f.addEventListener('load', () => {
+      let n = 0; clearInterval(YT.hs);
+      YT.hs = setInterval(() => {
+        if (!YT.frame || YT.ready || n++ > 40) { clearInterval(YT.hs); return; }
+        ytPost({ event: 'listening', id: 1, channel: 'widget' });
+      }, 250);
+    });
+    els.sourceFrame.appendChild(f);
+    YT.frame = f;
+    app.classList.add('has-source');
+    YT.fail = setTimeout(() => { if (!YT.ready) ytFail(); }, 5000);
+  }
+  function ytFail() {
+    YT.blocked = true;
+    ytDestroy();
+    state.elapsed = 0;
+    renderSource();
+    updatePlayUI(); updateTime(true);
+    announce('Video playback is unavailable here. Playing a simulated preview.');
+  }
+  function ytDestroy() {
+    clearInterval(YT.hs); clearTimeout(YT.fail); clearInterval(YT.fadeIv);
+    if (YT.frame) { YT.frame.remove(); YT.frame = null; }
+    YT.id = null; YT.ready = false; YT.ps = -1;
+    app.classList.remove('has-source');
+  }
+  window.addEventListener('message', e => {
+    if (!YT.frame || e.source !== YT.frame.contentWindow) return;
+    let d; try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (err) { return; }
+    if (!d || !d.event) return;
+    if (!YT.ready) {
+      YT.ready = true; clearTimeout(YT.fail); clearInterval(YT.hs);
+      if (state.playing) ytCmd('playVideo'); else ytCmd('pauseVideo');
+      renderSource();
+    }
+    const info = d.info;
+    if (d.event === 'infoDelivery' && info) {
+      if (typeof info.currentTime === 'number') { YT.time = info.currentTime; YT.stamp = performance.now(); }
+      if (info.duration) YT.dur = info.duration;
+      if (typeof info.playerState === 'number') ytState(info.playerState);
+    }
+    if (d.event === 'onStateChange') ytState(typeof info === 'number' ? info : (info && info.playerState));
+  });
+  function ytState(s) {
+    if (s === YT.ps || typeof s !== 'number') return;
+    YT.ps = s;
+    if (drag.hold || state.screen !== 'market') return;
+    if (s === 1 && !state.playing) { state.playing = true; col.classList.add('has-played'); updatePlayUI(); }
+    else if (s === 2 && state.playing) { state.playing = false; updatePlayUI(); }
+    else if (s === 0) onEnd();
+  }
+
+  /* ---------- Time model ---------- */
+  function dur() {
+    if (usingMedia()) return mediaReady() && isFinite(MEDIA.el.duration) ? MEDIA.el.duration : NaN;
+    return usingYT() ? (YT.dur || NaN) : CONFIG.previewSeconds;
+  }
+  function elapsed() {
+    if (usingMedia()) return mediaReady() ? MEDIA.el.currentTime : 0;
+    if (usingYT()) {
+      if (YT.id !== tr().youtube) return 0;
+      return YT.time + (YT.ps === 1 && !drag.hold ? (performance.now() - YT.stamp) / 1000 : 0);
+    }
+    return state.elapsed;
+  }
+  function progress() { const d = dur(); return isFinite(d) && d > 0 ? clamp(elapsed() / d, 0, 1) : 0; }
+
+  /* ---------- Render market ---------- */
+  /* Cap the enlarged width so the box never asks for more device pixels than the
+     source holds: at 2x that is 640 CSS px, at 1x a full 1280. */
+  /* Cap the enlarged width so the box never asks for more device pixels than the
+     source holds: at 2x that is 640 CSS px, at 1x a full 1280. */
+  function setZoomCap() {
+    app.style.setProperty('--zoom-max', Math.round(ZOOM_MIN_W / (window.devicePixelRatio || 1)) + 'px');
+  }
+  function setBig(on) {
+    state.big = !!on && canZoom(tr());
+    app.classList.toggle('src-big', state.big);
+    els.source.classList.toggle('big', state.big);
+    els.srcVeil.hidden = !state.big;
+    els.srcZoom.setAttribute('aria-pressed', state.big ? 'true' : 'false');
+    els.srcZoom.firstChild.textContent = state.big ? '⤡' : '⤢';
+    els.srcZoom.lastChild.textContent = state.big ? 'Shrink the video' : 'Enlarge the video';
+  }
+  function renderSource() {
+    if (state.m < 0) return;
+    const t = tr();
+    els.dSource.textContent = hasMedia(t) ? (t.mediaKind === 'audio' ? 'Audio, in page' : 'Video, in page') : (hasYT(t) ? 'YouTube' : 'Simulated preview');
+    els.srcZoom.hidden = !canZoom(t);               // offered only where the footage can carry it
+    if (state.big && !canZoom(t)) setBig(false);
+    const url = t.streamUrl || (t.youtube ? `https://www.youtube.com/watch?v=${t.youtube}` : '');
+    els.openTrack.href = url || '#TRACK-LINK';
+    els.openTrack.dataset.placeholder = url ? '' : 'true';
+    if (url) { els.openTrack.target = '_blank'; els.openTrack.rel = 'noopener'; } else { els.openTrack.removeAttribute('target'); }
+    els.openTrack.firstChild.textContent = (!t.streamUrl && t.youtube) ? 'Open on YouTube ' : 'Open track ';
+    els.openTrack.setAttribute('aria-label', `Open ${t.title} by ${t.artist}${url ? ' in a new tab' : ' (link to be added)'}`);
+  }
+  function renderMarket() {
+    const m = mk(), t = tr(), n = m.tracks.length;
+    app.style.setProperty('--accent', m.accent);
+    els.mIndex.textContent = `Market ${pad2(state.m + 1)} / ${pad2(CONFIG.markets.length)}`;
+    els.mcodeTxt.textContent = m.code;
+    els.mcode.setAttribute('aria-label', m.name);
+    els.artist.textContent = t.artist;
+    els.title.textContent = t.title;
+    els.quote.hidden = !t.quote;
+    els.quote.innerHTML = t.quote ? `${t.quote}${t.quoteBy ? `<span class="attr meta">— ${t.quoteBy}</span>` : ''}` : '';
+    els.cycler.hidden = n < 2;
+    els.cycCount.textContent = `Track ${pad2(state.t + 1)} / ${pad2(n)}`;
+    els.dMarket.textContent = m.name;
+    const ctxOn = !!t.context;
+    els.dCtx.hidden = els.dCtxT.hidden = !ctxOn;
+    els.dCtx.textContent = t.context || '';
+    els.dossier.hidden = !ctxOn;                   // nothing to list, so no stray rules
+    renderSource();
+    els.nextBtn.querySelector('.nx').textContent = state.m === LAST ? 'The bigger story' : 'Next market';
+    els.statement.innerHTML = m.signal.map((l, i) => `<span class="ln" style="--d:${i}"><span>${l}</span></span>`).join('');
+    els.draft.hidden = !m.signalDraft;
+    els.npText.textContent = `${t.artist} — ${t.title}`;
+    setLabel(m.code, `${t.artist.toUpperCase()}   ·   ${t.title.toUpperCase()}   ·   `, 'SIDE A');
+    [...els.nav.children].forEach((b, i) => {
+      b.setAttribute('aria-current', String(i === state.m));
+      b.classList.toggle('visited', state.visited.has(i));
+    });
+    buildWave(t.artist + t.title);
+    updatePlayUI();
+    updateTime(true);
+  }
+
+  /* ---------- Cipher reveal (the market signal line) ---------- */
+  const CIPHER = '/\\\\|<>-_[]{}=+*^?#ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let cipherRaf = 0, cipherToken = 0;
+  function cipherReveal(el, text, delay = 0, perChar = 34, settle = 460) {
+    cancelAnimationFrame(cipherRaf);
+    const token = ++cipherToken;
+    if (reduced || !text) { el.textContent = text; return; }
+    const chars = [...text];
+    const starts = chars.map((c, i) => delay + i * perChar + (c === ' ' ? 0 : Math.random() * 90));
+    const ends = starts.map((t, i) => t + settle + Math.random() * 160);
+    const t0 = performance.now();
+    const step = now => {
+      if (token !== cipherToken) return;
+      const t = now - t0;
+      let done = true;
+      el.textContent = chars.map((c, i) => {
+        if (c === ' ') return ' ';
+        if (t >= ends[i]) return c;
+        done = false;
+        if (t < starts[i]) return '';
+        return CIPHER[(Math.random() * CIPHER.length) | 0];
+      }).join('');
+      if (!done) cipherRaf = requestAnimationFrame(step);
+      else el.textContent = text;
+    };
+    cipherRaf = requestAnimationFrame(step);
+  }
+
+  /* ---------- Cinematic transitions ---------- */
+  function recordOut(then) {
+    deck.classList.add('exit');
+    later(() => {
+      then && then();
+      deck.classList.add('no-trans');
+      deck.classList.remove('exit', 'flipped');
+      deck.classList.add('enter-from');
+      void record.offsetWidth;
+      deck.classList.remove('no-trans');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        deck.classList.remove('enter-from');
+        if (!reduced) vel = Math.max(vel, 110);
+      }));
+    }, 900);
+  }
+  function resetTrackState() {
+    ytDestroy();
+    mediaUnload();
+    state.playing = false; state.elapsed = 0; state.listened = 0;
+    setSignal(false, true);
+    col.classList.remove('has-played');
+  }
+
+  function selectMarket(i) {
+    if (state.busy) return;
+    if (state.playAll) { setPlayAll(false); pause(true); }
+    if (i === state.m && state.screen === 'market') return;
+    const commit = () => {
+      state.m = i; state.t = 0;
+      state.visited.add(i);
+      resetTrackState();
+      renderMarket();
+      announce(`${mk().name}. ${tr().artist}, ${tr().title}.`);
+      if (pendingPlay) { pendingPlay = false; play(); }
+    };
+    if (reduced) {
+      commit();
+      if (state.screen !== 'market') setScreen('market', els.mcode);
+      return;
+    }
+    state.busy = true;
+    stopForTransition();
+    if (state.screen !== 'market') {
+      const from = document.querySelector('.screen.is-active');
+      from && from.classList.add('leaving');
+      recordOut(() => { commit(); setScreen('market', els.mcode); });
+      later(() => { state.busy = false; }, 1500);
+    } else {
+      col.classList.add('is-out');
+      recordOut(() => {
+        commit();
+        col.classList.remove('is-out');
+        col.classList.add('is-prep');
+        void col.offsetWidth;
+        later(() => { col.classList.remove('is-prep'); }, 250);
+      });
+      later(() => { state.busy = false; }, 1500);
+    }
+  }
+  function setTrack(j) {
+    if (state.busy) return;
+    if (state.playAll) { setPlayAll(false); pause(true); }
+    const n = mk().tracks.length;
+    const commit = () => {
+      state.t = (j + n) % n;
+      resetTrackState();
+      renderMarket();
+      announce(`Track ${state.t + 1} of ${n}. ${tr().artist}, ${tr().title}.`);
+      if (pendingPlay) { pendingPlay = false; play(); }
+    };
+    if (reduced) { commit(); return; }
+    state.busy = true;
+    stopForTransition();
+    col.classList.add('is-out');
+    recordOut(() => {
+      commit();
+      col.classList.remove('is-out'); col.classList.add('is-prep');
+      void col.offsetWidth;
+      later(() => col.classList.remove('is-prep'), 250);
+    });
+    later(() => { state.busy = false; }, 1500);
+  }
+  function stopForTransition() {
+    if (state.playing) { state.playing = false; if (YT.frame) ytCmd('pauseVideo'); if (MEDIA.el) MEDIA.el.pause(); updatePlayUI(); }
+  }
+  function nextMarket() { state.m < LAST ? selectMarket(state.m + 1) : goFinale(); }
+
+  /* ---------- Playback ---------- */
+  function play() {
+    touched();
+    col.classList.add('has-played');
+    state.playing = true;
+    if (usingMedia()) {
+      const v = mediaLoad(tr(), tr().mediaKind);   // playlist shows the corner frame too
+      if (v.ended || (isFinite(v.duration) && v.currentTime >= v.duration - 0.3)) v.currentTime = 0;
+      const pr = v.play();
+      if (pr && pr.catch) pr.catch(() => { if (hasMedia(tr())) { state.playing = false; updatePlayUI(); } });
+    } else if (usingYT()) {
+      if (YT.id !== tr().youtube) ytLoad(tr().youtube);
+      else {
+        if (isFinite(dur()) && elapsed() >= dur() - 0.3) { ytCmd('seekTo', [0, true]); YT.time = 0; YT.stamp = performance.now(); }
+        ytCmd('playVideo');
+      }
+    } else if (state.elapsed >= dur() - 0.05) state.elapsed = 0;
+    updatePlayUI();
+    announce(`Playing ${tr().artist}, ${tr().title}.`);
+  }
+  function pause(silent) {
+    if (!state.playing) { updatePlayUI(); return; }
+    state.playing = false;
+    if (YT.frame) ytCmd('pauseVideo');
+    if (MEDIA.el) MEDIA.el.pause();
+    updatePlayUI();
+    if (!silent) announce('Paused.');
+  }
+  function togglePlay() { state.playing ? pause() : play(); }
+  function onEnd() {
+    state.playing = false;
+    if (!usingYT() && !usingMedia()) state.elapsed = dur();
+    updatePlayUI();
+    if (!state.signal) setSignal(true);
+    if (state.playAll) later(advancePlaylist, 1400);   // a beat on the signal, then the next record
+  }
+  function advancePlaylist() {
+    if (!state.playAll || state.screen !== 'playlist') return;
+    const i = playlistAt();
+    if (i < 0 || i >= PLAYLIST.length - 1) { setPlayAll(false); goFinale(); return; }
+    playlistGo(i + 1);
+  }
+  // Move the playlist on: the record still changes, but there is no column to rebuild.
+  function playlistGo(i, manual) {
+    if (state.busy) return;
+    const x = PLAYLIST[i];
+    if (!x) return;
+    if (manual && !state.playAll) setPlayAll(true);
+    const commit = () => {
+      state.m = x.m; state.t = x.t;
+      state.visited.add(x.m);
+      resetTrackState();
+      renderMarket();
+      renderPlaylist();
+      announce(`${tr().artist}, ${tr().title}. Track ${i + 1} of ${PLAYLIST.length}.`);
+      play();
+      if (queuedSeek != null) {
+        const d = dur();
+        if (isFinite(d)) seek(queuedSeek * d); else MEDIA.pendingP = queuedSeek;
+        queuedSeek = null;
+      }
+    };
+    if (reduced || state.screen !== 'playlist') { commit(); return; }
+    state.busy = true;
+    stopForTransition();
+    recordOut(commit);
+    later(() => { state.busy = false; }, 1500);
+  }
+  function renderPlaylist() {
+    const at = playlistAt();
+    [...els.plList.children].forEach((row, i) => {
+      row.classList.toggle('on', i === at);
+      row.setAttribute('aria-current', String(i === at));
+      if (i !== at && !(scrub.on && scrub.i === i)) paintBar(row, 0);
+    });
+    els.plCount.textContent = `${pad2(at + 1)} / ${pad2(PLAYLIST.length)}`;
+  }
+  // Each track has its own scrub bar. Press anywhere on it to move within the
+  // track; the title above it still plays from the top.
+  const scrub = { on: false, i: -1, row: null, bar: null, frac: 0 };
+  let queuedSeek = null;
+  const fracAt = (e, el) => {
+    const r = el.getBoundingClientRect();
+    return clamp((e.clientX - r.left) / Math.max(1, r.width), 0, 1);
+  };
+  function paintBar(row, frac) {
+    row.querySelector('.fill').style.width = (frac * 100).toFixed(2) + '%';
+    row.querySelector('.knob').style.left = (frac * 100).toFixed(2) + '%';
+    row.querySelector('.pl-bar').setAttribute('aria-valuenow', Math.round(frac * 100));
+  }
+  function plScrubDown(e, i, row, bar) {
+    if (state.busy || e.button) return;
+    e.preventDefault();
+    Object.assign(scrub, { on: true, i, row, bar, frac: fracAt(e, bar) });
+    row.classList.add('dragging');
+    bar.setPointerCapture(e.pointerId);
+    paintBar(row, scrub.frac);
+    if (i === playlistAt()) applyScrub();            // the live track follows at once
+  }
+  function applyScrub() {
+    const d = dur();
+    if (isFinite(d)) seek(scrub.frac * d);
+    else if (mediaReady()) MEDIA.pendingP = scrub.frac;
+  }
+  function plScrubMove(e) {
+    if (!scrub.on) return;
+    scrub.frac = fracAt(e, scrub.bar);
+    paintBar(scrub.row, scrub.frac);
+    if (scrub.i === playlistAt()) applyScrub();
+  }
+  function plScrubUp() {
+    if (!scrub.on) return;
+    scrub.on = false;
+    scrub.row.classList.remove('dragging');
+    if (scrub.i !== playlistAt()) { queuedSeek = scrub.frac; playlistGo(scrub.i, true); }
+  }
+  window.addEventListener('pointermove', plScrubMove, { passive: true });
+  window.addEventListener('pointerup', plScrubUp);
+  window.addEventListener('pointercancel', plScrubUp);
+
+  function playlistProgress() {
+    const row = els.plList.children[playlistAt()];
+    if (!row) return;
+    if (!scrub.on) paintBar(row, progress());
+  }
+  function setPlayAll(on) {
+    state.playAll = on;
+    $('#playAllBtn').setAttribute('aria-pressed', String(on));
+    $('#playAllBtn').querySelector('.pa-label').textContent = on ? 'Stop' : 'Immerse in The Full Jam';
+    $('#playAllBtn').setAttribute('aria-label', on ? 'Stop the full jam' : 'Immerse in the full jam: play all tracks, audio only');
+    $('#jamBtn').hidden = on;
+  }
+  function togglePlayAll(startAt) {
+    if (state.busy) return;
+    if (state.playAll) { exitPlaylist(); return; }
+    setPlayAll(true);
+    announce(`Playing all ${PLAYLIST.length} tracks.`);
+    const from = document.querySelector('.screen.is-active');
+    const start = Number.isInteger(startAt) ? startAt : Math.max(0, playlistAt());
+    clearF();                                        // leaving Side B behind
+    delete app.dataset.fstep;
+    const open = () => {
+      const x = PLAYLIST[start];
+      state.m = x.m; state.t = x.t; state.visited.add(x.m);
+      resetTrackState();
+      renderMarket(); renderPlaylist();
+      setScreen('playlist', $('#plTitle'));
+      play();
+    };
+    if (reduced) { open(); return; }
+    state.busy = true;
+    stopForTransition();
+    from && from.classList.add('leaving');
+    recordOut(open);
+    later(() => { state.busy = false; }, 1500);
+  }
+  function exitPlaylist() {
+    setPlayAll(false);
+    pause(true);
+    if (state.screen !== 'playlist') return;
+    announce('Left the playlist.');
+    $('#playlist').classList.add('leaving');
+    later(() => { renderMarket(); setScreen('market', els.mcode); }, 450);
+  }
+  function updatePlayUI() {
+    app.dataset.playing = String(state.playing);
+    if (state.m < 0) return;
+    const d = dur(), e = elapsed();
+    const ended = isFinite(d) && e >= d - 0.3 && e > 0;
+    const label = state.playing ? 'Playing' : (ended ? 'Listen again' : (e > 0.2 ? 'Paused' : 'Listen'));
+    els.playLabel.textContent = label;
+    els.playBtn.setAttribute('aria-label', `${state.playing ? 'Pause' : (ended ? 'Listen again' : 'Listen')}: ${tr().title}`);
+    els.plPlayBtn.setAttribute('aria-label', state.playing ? 'Pause' : 'Play');
+  }
+  let lastSec = -1;
+  function updateTime(force) {
+    const e = elapsed(), d = dur(), s = Math.floor(e);
+    els.miniBar.style.transform = `scaleX(${progress()})`;
+    if (s === lastSec && !force) return;
+    lastSec = s;
+    els.tCur.textContent = fmt(e);
+    els.tDur.textContent = fmt(d);
+    els.npTime.textContent = `${fmt(e)} / ${fmt(d)}`;
+    els.plCur.textContent = fmt(e);
+    els.plDur.textContent = fmt(d);
+    canvas.setAttribute('aria-valuemax', isFinite(d) ? Math.round(d) : 0);
+    canvas.setAttribute('aria-valuenow', s);
+    canvas.setAttribute('aria-valuetext', `${fmt(e)} of ${fmt(d)}`);
+  }
+  function seek(sec) {
+    const d = dur();
+    if (!isFinite(d)) return;
+    sec = clamp(sec, 0, d - 0.05);
+    if (usingMedia()) { if (mediaReady()) MEDIA.el.currentTime = sec; }
+    else if (usingYT() && YT.frame) { ytCmd('seekTo', [sec, true]); YT.time = sec; YT.stamp = performance.now(); }
+    else state.elapsed = sec;
+    col.classList.add('has-played');
+    updatePlayUI(); updateTime(true); waveDirty = true;
+  }
+
+  /* ---------- Cultural signal ---------- */
+  function setSignal(on, silent) {
+    if (state.signal === on && !silent) return;
+    const hiding = on ? els.trackPanel : els.signalPanel;
+    const a = document.activeElement;
+    const hadFocus = hiding.contains(a) || (on && a && a.closest && a.closest('.only-track'));
+    state.signal = on;
+    col.classList.toggle('show-signal', on);
+    els.trackPanel.classList.toggle('off', on);
+    els.signalPanel.classList.toggle('off', !on);
+    els.trackPanel.inert = on;
+    els.signalPanel.inert = !on;
+    if (on && state.m >= 0) state.signalSeen.add(state.m);
+    if (silent) return;
+    if (on) announce(`What we're hearing: ${mk().signal.join(' ')}`);
+    if (hadFocus) setTimeout(() => (on ? $('#backBtn') : els.playBtn).focus({ preventScroll: true }), 30);
+  }
+
+  /* ---------- Waveform ---------- */
+  let bars = [], waveDirty = true;
+  function seeded(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+    return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+  }
+  function buildWave(key) {
+    const r = seeded(key), N = 400, raw = [];
+    for (let i = 0; i < N; i++) raw.push(r());
+    bars = raw.map((_, i) => {
+      let s = 0, c = 0;
+      for (let k = -3; k <= 3; k++) { const v = raw[i + k]; if (v !== undefined) { s += v; c++; } }
+      const u = i / N;
+      const env = 0.35 + 0.65 * Math.sin(Math.min(1, u * 1.15) * Math.PI * 0.92);
+      return Math.min(1, 0.1 + Math.pow(s / c, 1.6) * 1.25 * env + (raw[i] > 0.93 ? 0.25 * env : 0));
+    });
+    waveDirty = true;
+  }
+  function drawWave(now) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const gap = 3, bw = 1.5, n = Math.floor(w / gap);
+    const ph = progress() * w, live = state.playing && !reduced;
+    const accent = getComputedStyle(app).getPropertyValue('--accent').trim() || '#EDE6DA';
+    for (let i = 0; i < n; i++) {
+      const x = i * gap;
+      let a = bars[Math.floor((i / n) * bars.length)] || 0.2;
+      if (live) { const dist = Math.abs(x - ph); if (dist < 60) a *= 0.85 + 0.3 * Math.abs(Math.sin(now / 170 + i * 0.9)) * (1 - dist / 60) + 0.15 * (dist / 60); }
+      const bh = Math.max(1.5, a * h), y = (h - bh) / 2;
+      if (Math.abs(x - ph) < gap && ph > 0) { ctx.fillStyle = accent; ctx.globalAlpha = 1; }
+      else { ctx.fillStyle = '#EDE6DA'; ctx.globalAlpha = x < ph ? 0.9 : 0.2; }
+      ctx.fillRect(x, y, bw, bh);
+    }
+    ctx.globalAlpha = 1;
+    waveDirty = false;
+  }
+  window.addEventListener('resize', () => { waveDirty = true; });
+  canvas.addEventListener('pointerdown', e => {
+    const r = canvas.getBoundingClientRect();
+    const setFrom = ev => seek(((ev.clientX - r.left) / r.width) * dur());
+    setFrom(e);
+    canvas.setPointerCapture(e.pointerId);
+    const move = ev => setFrom(ev);
+    const up = () => { canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerup', up); };
+    canvas.addEventListener('pointermove', move);
+    canvas.addEventListener('pointerup', up);
+  });
+  canvas.addEventListener('keydown', e => {
+    const k = e.key, d = dur();
+    if (k === 'ArrowRight' || k === 'ArrowUp') { seek(elapsed() + 5); e.preventDefault(); }
+    else if (k === 'ArrowLeft' || k === 'ArrowDown') { seek(elapsed() - 5); e.preventDefault(); }
+    else if (k === 'Home') { seek(0); e.preventDefault(); }
+    else if (k === 'End' && isFinite(d)) { seek(d - 1); e.preventDefault(); }
+  });
+
+  /* =========================================================
+     PHYSICAL INTERACTION
+     - hold the record: it stops under your hand, music pauses
+     - drag: spin / scrub; release: it coasts back up to speed
+     - tap: play / pause
+     - tonearm: drag it onto the record to play, off to stop
+     ========================================================= */
+  let angle = 0, vel = 0, armDeg = -6, last = performance.now();
+  let armSeated = null, armSmoothUntil = 0;
+  const drag = { on: false, hold: false };
+  const armDrag = { on: false };
+  function touched() { app.classList.add('touched'); }
+  function screenAngle(e, el) {
+    const r = el.getBoundingClientRect();
+    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+  }
+
+  record.addEventListener('pointerdown', e => {
+    if (state.screen === 'finale' || state.busy) return;
+    e.preventDefault();
+    record.setPointerCapture(e.pointerId);
+    deck.classList.add('pressed');
+    touched();
+    Object.assign(drag, { on: true, prev: screenAngle(e, record), t0: performance.now(), lt: performance.now(), moved: 0, v: 0 });
+    if (state.playing && state.screen === 'market') {
+      drag.hold = true;
+      if (usingMedia() && MEDIA.el) MEDIA.el.pause();
+      else if (usingYT() && YT.frame) { YT.time = elapsed(); YT.stamp = performance.now(); ytCmd('pauseVideo'); }
+    }
+  });
+  record.addEventListener('pointermove', e => {
+    if (!drag.on) return;
+    const a = screenAngle(e, record), now = performance.now();
+    let d = a - drag.prev; if (d > 180) d -= 360; if (d < -180) d += 360;
+    const dt = Math.max(0.008, (now - drag.lt) / 1000);
+    angle += d; drag.moved += Math.abs(d);
+    drag.v = drag.v * 0.6 + (d / dt) * 0.4;
+    drag.prev = a; drag.lt = now;
+    if (drag.hold && usingMedia()) { if (mediaReady() && isFinite(dur())) MEDIA.el.currentTime = clamp(MEDIA.el.currentTime + d / 200, 0, dur() - 0.05); }
+    else if (drag.hold && !usingYT()) state.elapsed = clamp(state.elapsed + d / 200, 0, dur() - 0.05);
+  });
+  const endDrag = () => {
+    if (!drag.on) return;
+    drag.on = false;
+    deck.classList.remove('pressed');
+    const quick = performance.now() - drag.t0 < 320 && drag.moved < 3;
+    const wasHold = drag.hold;
+    drag.hold = false;
+    if (quick) {
+      if (state.screen === 'market' || state.screen === 'playlist') {
+        if (wasHold) { pause(); } else togglePlay();
+      } else if (state.screen === 'soundcheck') selectMarket(0);
+      else if (state.screen === 'intro') enter();
+      return;
+    }
+    if (!reduced) vel = clamp(drag.v, -900, 900);
+    if (wasHold && state.playing && usingMedia() && MEDIA.el) MEDIA.el.play().catch(() => {});
+    else if (wasHold && state.playing && usingYT() && YT.frame) ytCmd('playVideo');
+  };
+  record.addEventListener('pointerup', endDrag);
+  record.addEventListener('pointercancel', endDrag);
+
+  arm.addEventListener('pointerdown', e => {
+    if (state.screen !== 'market' || state.busy) return;
+    e.preventDefault(); e.stopPropagation();
+    arm.setPointerCapture(e.pointerId);
+    touched();
+    Object.assign(armDrag, { on: true, p0: screenAngle(e, armBase), d0: armDeg, deg: armDeg });
+    arm.classList.add('dragging'); armShadow.classList.add('dragging');
+    arm.classList.remove('lowered'); armShadow.classList.remove('lowered');
+  });
+  arm.addEventListener('pointermove', e => {
+    if (!armDrag.on) return;
+    let d = screenAngle(e, armBase) - armDrag.p0; if (d > 180) d -= 360; if (d < -180) d += 360;
+    armDrag.deg = clamp(armDrag.d0 + d, -8, 32);
+    setArm(armDrag.deg);
+  });
+  const endArm = () => {
+    if (!armDrag.on) return;
+    armDrag.on = false;
+    arm.classList.remove('dragging'); armShadow.classList.remove('dragging');
+    if (armDrag.deg >= 12) {
+      const p = clamp((armDrag.deg - 14) / 16, 0, 1);
+      if (usingMedia()) {
+        if (!state.playing) play();
+        if (isFinite(dur())) seek(p * dur()); else MEDIA.pendingP = p;
+      } else if (!usingYT()) { seek(p * dur()); if (!state.playing) play(); }
+      else {
+        if (!state.playing) play();
+        if (isFinite(dur())) seek(p * dur());
+      }
+    } else if (state.playing) pause();
+  };
+  arm.addEventListener('pointerup', endArm);
+  arm.addEventListener('pointercancel', endArm);
+  function setArm(deg) {
+    armDeg = deg;
+    const v = deg.toFixed(2) + 'deg';
+    arm.style.setProperty('--arm', v);
+    armShadow.style.setProperty('--arm', v);
+  }
+
+  stage.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !reduced) deck.classList.add('hover'); });
+  stage.addEventListener('pointerleave', () => {
+    deck.classList.remove('hover', 'tracking');     // let it settle back on the long easing
+    platter.style.setProperty('--tx', '0deg'); platter.style.setProperty('--ty', '0deg'); platter.style.setProperty('--light', '210deg');
+  });
+  stage.addEventListener('pointermove', e => {
+    if (reduced || e.pointerType !== 'mouse' || state.screen === 'finale') return;
+    deck.classList.add('tracking');
+    const r = stage.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    platter.style.setProperty('--tx', (x * 7).toFixed(2) + 'deg');
+    platter.style.setProperty('--ty', (-y * 5).toFixed(2) + 'deg');
+    platter.style.setProperty('--light', (210 + x * 70).toFixed(1) + 'deg');
+  });
+
+  /* ---------- Frame loop ---------- */
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const inMarket = state.screen === 'market';
+
+    if (state.playing && !drag.hold && (inMarket || state.screen === 'playlist')) {
+      const sim = !usingYT() && !usingMedia();
+      if (sim) {
+        state.elapsed += dt;
+        if (state.elapsed >= dur()) onEnd();
+      }
+      if (sim || (usingYT() && YT.ps === 1) || (usingMedia() && MEDIA.el && !MEDIA.el.paused)) state.listened += dt;
+      if (!state.signal && state.listened >= CONFIG.signalRevealAt && !state.signalSeen.has(state.m)) setSignal(true);
+    }
+    if (inMarket) updateTime();
+    if (state.screen === 'playlist') { updateTime(); playlistProgress(); }
+
+    let target = 0;
+    if (!reduced) {
+      if (state.playing && !drag.hold) target = 200;       // 33⅓ rpm
+      if (now < state.boostUntil) target = 150;
+    }
+    if (!drag.on) {
+      const slowing = Math.abs(target) < Math.abs(vel);
+      const k = !slowing ? 2.2 : (state.screen === 'finale' ? 0.36 : 1.0);
+      vel += (target - vel) * (1 - Math.exp(-dt * k));
+      if (target === 0 && Math.abs(vel) < 0.4) vel = 0;
+      angle += vel * dt;
+    }
+    const a = angle.toFixed(2);
+    disc.style.transform = `translateZ(6px) rotate(${a}deg)`;
+    discBack.style.transform = `translateZ(2px) rotateX(180deg) rotate(${(-angle).toFixed(2)}deg)`;
+    rim.style.transform = `translate(-50%,-50%) translateZ(2px) rotate(${a}deg)`;
+
+    if (!armDrag.on) {
+      const e = elapsed(), d = dur();
+      const playable = inMarket || state.screen === 'playlist';
+      const onRecord = playable && !state.busy && (state.playing || (e > 0.2 && !(isFinite(d) && e >= d - 0.3)));
+      if (onRecord !== armSeated) {                 // the drop and the lift keep the slow easing
+        armSeated = onRecord;
+        armSmoothUntil = now + 1250;
+        arm.classList.toggle('lowered', onRecord);
+        armShadow.classList.toggle('lowered', onRecord);
+      }
+      const tracking = now > armSmoothUntil;        // riding the groove: follow playback directly
+      arm.classList.toggle('live', tracking);
+      armShadow.classList.toggle('live', tracking);
+      const target = onRecord ? 14 + 16 * progress() : -6;
+      if (Math.abs(target - armDeg) > 0.02) setArm(target);
+    }
+
+    if (inMarket && (state.playing || waveDirty || armDrag.on)) drawWave(now);
+    requestAnimationFrame(tick);
+  }
+
+  /* ---------- Final reveal ---------- */
+  let fTimers = [];
+  const clearF = () => { fTimers.forEach(clearTimeout); fTimers = []; };
+  function fStep(n) {
+    finale.dataset.step = String(n);
+    app.dataset.fstep = String(n);
+    if (n === 1) announce('You heard the tracks.');
+    if (n === 2) { announce('Now hear the bigger story.'); if (!reduced) fTimers.push(setTimeout(() => deck.classList.add('flipped'), 500)); else deck.classList.add('flipped'); }
+    if (n === 3) { deck.classList.add('flipped'); later(() => $('#fTitle').focus({ preventScroll: true }), 700); }
+  }
+  function goFinale() {
+    if (state.busy) return;
+    setPlayAll(false); pendingPlay = false;
+    const wasPlaying = state.playing;
+    // fade the music out as the record slows
+    if (YT.frame && YT.ready && wasPlaying && !reduced) {
+      let v = 100;
+      clearInterval(YT.fadeIv);
+      YT.fadeIv = setInterval(() => { v -= 5; ytCmd('setVolume', [Math.max(0, v)]); if (v <= 0) { clearInterval(YT.fadeIv); ytCmd('pauseVideo'); } }, 160);
+    } else if (YT.frame) ytCmd('pauseVideo');
+    if (MEDIA.el && mediaReady()) {
+      const v = MEDIA.el;
+      clearInterval(MEDIA.fadeIv);
+      if (wasPlaying && !reduced) {
+        MEDIA.fadeIv = setInterval(() => { v.volume = Math.max(0, v.volume - 0.05); if (v.volume <= 0.001) { clearInterval(MEDIA.fadeIv); v.pause(); } }, 160);
+      } else v.pause();
+    }
+    state.playing = false;
+    updatePlayUI();
+    if (!reduced && !wasPlaying && Math.abs(vel) < 40) state.boostUntil = performance.now() + 1500;
+    setSignal(false, true);
+    app.style.setProperty('--accent', NEUTRAL);
+    finale.dataset.step = '0';
+    app.dataset.fstep = '0';
+    setScreen('finale', els.skip);
+    const T = reduced ? [200, 2000, 3800, 4200] : [3600, 7200, 10600, 11600];
+    fTimers.push(setTimeout(() => fStep(1), T[0]));
+    fTimers.push(setTimeout(() => fStep(2), T[1]));
+    fTimers.push(setTimeout(() => { fStep('b'); ytDestroy(); mediaUnload(); }, T[2]));
+    fTimers.push(setTimeout(() => fStep(3), T[3]));
+  }
+  function skipFinale() { clearF(); ytDestroy(); mediaUnload(); fStep(3); }
+  function resetAll() {
+    clearF(); ytDestroy(); mediaUnload();
+    setPlayAll(false); pendingPlay = false;
+    [...els.plList.children].forEach(r => { r.className = 'pl-row'; paintBar(r, 0); });
+    state.m = -1; state.t = 0; state.playing = false; state.elapsed = 0; state.listened = 0; state.signal = false;
+    delete app.dataset.fstep;
+    idleLabel();
+    [...els.nav.children].forEach(b => b.setAttribute('aria-current', 'false'));
+    updatePlayUI();
+  }
+  function exploreAgain() {
+    finale.classList.add('leaving');
+    recordOut(() => { resetAll(); setScreen('soundcheck', $('#scTitle')); });
+  }
+  function goHome() {
+    if (state.screen === 'intro') return;
+    const from = document.querySelector('.screen.is-active');
+    from && from.classList.add('leaving');
+    const run = () => { resetAll(); state.busy = false; setScreen('intro', $('#introTitle')); };
+    if (deck.classList.contains('flipped')) recordOut(run); else later(run, 450);
+  }
+  function enter() {
+    intro.classList.add('leaving');
+    later(() => { setScreen('soundcheck', $('#scTitle')); intro.classList.remove('leaving'); }, 560);
+  }
+
+  /* ---------- Wiring ---------- */
+  // The opening is entered by scrolling (wheel, trackpad or swipe); the cue
+  // stays clickable, and the keyboard gets the same thing.
+  let scrollAcc = 0, touchY = null;
+  const intoExperience = () => {
+    if (state.screen !== 'intro' || intro.classList.contains('leaving')) return false;
+    scrollAcc = 0; enter(); return true;
+  };
+  window.addEventListener('wheel', e => {
+    if (state.screen !== 'intro') return;
+    if (e.deltaY <= 0) { scrollAcc = Math.max(0, scrollAcc + e.deltaY * 0.5); return; }
+    scrollAcc += e.deltaY;
+    if (scrollAcc > 46) intoExperience();
+  }, { passive: true });
+  window.addEventListener('touchstart', e => { if (state.screen === 'intro' && e.touches[0]) touchY = e.touches[0].clientY; }, { passive: true });
+  window.addEventListener('touchmove', e => {
+    if (state.screen !== 'intro' || touchY === null || !e.touches[0]) return;
+    if (touchY - e.touches[0].clientY > 40) { touchY = null; intoExperience(); }
+  }, { passive: true });
+  window.addEventListener('touchend', () => { touchY = null; }, { passive: true });
+
+  $('#enterBtn').addEventListener('click', enter);
+  $('#homeBtn').addEventListener('click', goHome);
+  $('#playAllBtn').addEventListener('click', () => togglePlayAll());
+  $('#jamBtn').addEventListener('click', () => togglePlayAll(0));   // Side B starts the side again
+  els.plPlayBtn.addEventListener('click', togglePlay);
+  $('#plExit').addEventListener('click', exitPlaylist);
+  els.playBtn.addEventListener('click', togglePlay);
+  $('#prevTrack').addEventListener('click', () => setTrack(state.t - 1));
+  $('#nextTrack').addEventListener('click', () => setTrack(state.t + 1));
+  $('#hearBtn').addEventListener('click', () => setSignal(true));
+  $('#backBtn').addEventListener('click', () => setSignal(false));
+  els.nextBtn.addEventListener('click', nextMarket);
+  els.skip.addEventListener('click', skipFinale);
+  els.srcZoom.addEventListener('click', () => setBig(!state.big));
+  els.srcVeil.addEventListener('click', () => setBig(false));
+  window.addEventListener('resize', setZoomCap);
+  /* Belt and braces: controlsList is Chromium-only, so if a browser lets the video
+     into fullscreen anyway, step straight back out. */
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement && MEDIA.el && document.fullscreenElement === MEDIA.el) {
+      try { document.exitFullscreen(); } catch (e) {}
+      setBig(true);
+      announce('Fullscreen would outrun the source. Showing the enlarged view instead.');
+    }
+  });
+  $('#againBtn').addEventListener('click', exploreAgain);
+  els.openTrack.addEventListener('click', e => {
+    if (els.openTrack.dataset.placeholder !== 'true') { pause(true); return; }
+    e.preventDefault();
+    const original = els.openTrack.innerHTML;
+    els.openTrack.textContent = 'Link to be added';
+    announce('Streaming link to be added.');
+    setTimeout(() => { els.openTrack.innerHTML = original; }, 1800);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const onBody = e.target === document.body || e.target === document.documentElement;
+    if ((state.screen === 'market' || state.screen === 'soundcheck') && /^[1-4]$/.test(e.key)) selectMarket(+e.key - 1);
+    if ((state.screen === 'market' || state.screen === 'playlist') && onBody && (e.key === ' ' || e.key === 'k')) { e.preventDefault(); togglePlay(); }
+    if (state.screen === 'finale' && e.key === 'Escape') skipFinale();
+    if (state.big && e.key === 'Escape') { e.preventDefault(); setBig(false); }
+    if (state.screen === 'intro' && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ')) { e.preventDefault(); intoExperience(); }
+  });
+
+  /* ---------- Start ---------- */
+  setPlayAll(false);
+  setZoomCap();
+  idleLabel();
+  buildWave('idle');
+  setArm(-6);
+  requestAnimationFrame(() => requestAnimationFrame(() => setScreen('intro')));
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
